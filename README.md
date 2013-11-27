@@ -26,7 +26,7 @@ You may find example input files in the [FIMI repository](http://fimi.ua.ac.be/d
 
 ## License and copyright owners
 
-This work is released under the Apache Licence 2.0 (see LICENSE).
+This work is released under the Apache License 2.0 (see LICENSE).
 
 Copyright 2013 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, 
 Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS.
