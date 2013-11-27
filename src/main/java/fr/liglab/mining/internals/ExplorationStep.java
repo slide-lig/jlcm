@@ -42,25 +42,6 @@ public final class ExplorationStep implements Cloneable {
 	public final static String KEY_LONG_TRANSACTIONS_THRESHOLD = "toplcm.threshold.long";
 
 	/**
-	 * @see longTransactionsMode
-	 */
-	static int LONG_TRANSACTION_MODE_THRESHOLD = Integer.parseInt(System.getProperty(KEY_LONG_TRANSACTIONS_THRESHOLD,
-			"2000"));
-
-	/**
-	 * When projecting on a item having a support count above
-	 * VIEW_SUPPORT_THRESHOLD%, projection will be a DatasetView
-	 */
-	static double VIEW_SUPPORT_THRESHOLD = Double.parseDouble(System.getProperty(KEY_VIEW_SUPPORT_THRESHOLD, "0.15"));
-
-	/**
-	 * When set to true we stick to a complete LCMv2 implementation, with
-	 * predictive prefix-preservation tests and compressions at all steps.
-	 * Setting this to false is better when mining top-k-per-item patterns.
-	 */
-	public static boolean LCM_STYLE = false;
-
-	/**
 	 * closure of parent's pattern UNION extension
 	 */
 	public final int[] pattern;
@@ -88,8 +69,6 @@ public final class ExplorationStep implements Cloneable {
 	 */
 	private final TIntIntHashMap failedFPTests;
 
-	private final boolean predictiveFPTestMode;
-
 	/**
 	 * Start exploration on a dataset contained in a file.
 	 * 
@@ -101,7 +80,6 @@ public final class ExplorationStep implements Cloneable {
 	public ExplorationStep(int minimumSupport, String path) {
 		this.core_item = Integer.MAX_VALUE;
 		this.selectChain = null;
-		this.predictiveFPTestMode = false;
 
 		FileReader reader = new FileReader(path);
 		this.counters = new Counters(minimumSupport, reader);
@@ -117,7 +95,7 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	private ExplorationStep(int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
-			FrequentsIterator candidates, TIntIntHashMap failedFPTests, boolean predictiveFPTestMode) {
+			FrequentsIterator candidates, TIntIntHashMap failedFPTests) {
 		super();
 		this.pattern = pattern;
 		this.core_item = core_item;
@@ -126,7 +104,6 @@ public final class ExplorationStep implements Cloneable {
 		this.selectChain = selectChain;
 		this.candidates = candidates;
 		this.failedFPTests = failedFPTests;
-		this.predictiveFPTestMode = predictiveFPTestMode;
 	}
 
 	/**
@@ -216,7 +193,6 @@ public final class ExplorationStep implements Cloneable {
 			this.failedFPTests = null;
 			this.selectChain = null;
 			this.dataset = null;
-			this.predictiveFPTestMode = false;
 		} else {
 			this.failedFPTests = new TIntIntHashMap();
 
@@ -225,20 +201,8 @@ public final class ExplorationStep implements Cloneable {
 			} else {
 				this.selectChain = parent.selectChain.copy();
 			}
-
-			// ! \\ From here, order is important
-
-			if (parent.predictiveFPTestMode) {
-				this.predictiveFPTestMode = true;
-			} else {
-				final int averageLen = candidateCounts.distinctTransactionLengthSum
-						/ candidateCounts.distinctTransactionsCount;
-
-				this.predictiveFPTestMode = LCM_STYLE || averageLen > LONG_TRANSACTION_MODE_THRESHOLD;
-				if (this.predictiveFPTestMode) {
-					this.selectChain = new FirstParentTest(this.selectChain);
-				}
-			}
+			
+			this.selectChain = new FirstParentTest(this.selectChain);
 
 			// indeed, instantiateDataset is influenced by longTransactionsMode
 			this.dataset = instanciateDataset(parent, support);
@@ -251,32 +215,22 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	private Dataset instanciateDataset(ExplorationStep parent, TransactionsIterable support) {
-		final double supportRate = this.counters.distinctTransactionsCount
-				/ (double) parent.dataset.getStoredTransactionsCount();
 
-		if (!this.predictiveFPTestMode && (supportRate) > VIEW_SUPPORT_THRESHOLD) {
-			return new DatasetView(parent.dataset, this.counters, support, this.core_item);
-		} else {
-			final int[] renaming = this.counters.compressRenaming(parent.counters.getReverseRenaming());
+		final int[] renaming = this.counters.compressRenaming(parent.counters.getReverseRenaming());
 
-			TransactionsRenamingDecorator filtered = new TransactionsRenamingDecorator(support.iterator(), renaming);
+		TransactionsRenamingDecorator filtered = new TransactionsRenamingDecorator(support.iterator(), renaming);
 
-			final int tidsLimit = this.predictiveFPTestMode ? Integer.MAX_VALUE : this.counters.getMaxCandidate() + 1;
-			try {
-				Dataset dataset = new Dataset(this.counters, filtered, tidsLimit);
-				if (LCM_STYLE) {
-					dataset.compress(this.core_item);
-				}
-
-				return dataset;
-			} catch (ArrayIndexOutOfBoundsException e) {
-				System.out.println("WAT core_item = " + this.core_item);
-				e.printStackTrace();
-				System.exit(1);
-			}
-
-			return null;
+		try {
+			Dataset dataset = new Dataset(this.counters, filtered, Integer.MAX_VALUE);
+			dataset.compress(this.core_item);
+			return dataset;
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("WAT core_item = " + this.core_item);
+			e.printStackTrace();
+			System.exit(1);
 		}
+
+		return null;
 	}
 
 	public int getFailedFPTest(final int item) {
@@ -308,8 +262,7 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	public ExplorationStep copy() {
-		return new ExplorationStep(pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates,
-				failedFPTests, predictiveFPTestMode);
+		return new ExplorationStep(pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates, failedFPTests);
 	}
 
 	public Progress getProgression() {

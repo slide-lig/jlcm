@@ -323,11 +323,7 @@ public class PLCM {
 		if (args.length >= 3) {
 			outputPath = args[2];
 		}
-
-		if (!cmd.hasOption('k')) {
-			ExplorationStep.LCM_STYLE = true;
-		}
-
+		
 		if (cmd.hasOption('m')) {
 			memoryWatch = new MemoryPeakWatcherThread();
 			memoryWatch.start();
