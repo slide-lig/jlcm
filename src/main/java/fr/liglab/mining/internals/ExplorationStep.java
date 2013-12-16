@@ -203,14 +203,8 @@ public final class ExplorationStep implements Cloneable {
 			}
 			
 			this.selectChain = new FirstParentTest(this.selectChain);
-
-			// indeed, instantiateDataset is influenced by longTransactionsMode
 			this.dataset = instanciateDataset(parent, support);
-
-			// and intanciateDataset may choose to trigger some renaming in
-			// counters
 			this.candidates = this.counters.getExtensionsIterator();
-
 		}
 	}
 
@@ -224,6 +218,7 @@ public final class ExplorationStep implements Cloneable {
 			Dataset dataset = new Dataset(this.counters, filtered, Integer.MAX_VALUE);
 			dataset.compress(this.core_item);
 			return dataset;
+			
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("WAT core_item = " + this.core_item);
 			e.printStackTrace();
@@ -256,9 +251,8 @@ public final class ExplorationStep implements Cloneable {
 	public int getCatchedWrongFirstParentCount() {
 		if (this.failedFPTests == null) {
 			return 0;
-		} else {
-			return this.failedFPTests.size();
 		}
+		return this.failedFPTests.size();
 	}
 
 	public ExplorationStep copy() {

@@ -78,14 +78,6 @@ final class FirstParentTest extends Selector {
 	@Override
 	protected boolean allowExploration(int extension, ExplorationStep state) throws WrongFirstParentException {
 
-		/**
-		 * FIXME maybe fast prefix-preserving state as described by Uno et al.
-		 * may work with DatasetView
-		 */
-		if (state.dataset instanceof DatasetView) {
-			throw new IllegalArgumentException("FPtest can only be done on Dataset");
-		}
-
 		final int[] supportCounts = state.counters.supportCounts;
 		final TidList occurrencesLists = state.dataset.tidLists;
 
