@@ -21,22 +21,111 @@
 
 package fr.liglab.mining.internals.tidlist;
 
-import gnu.trove.iterator.TIntIterator;
-
 import java.util.Arrays;
+
+import fr.liglab.mining.internals.Counters;
+import gnu.trove.iterator.TIntIterator;
 
 public abstract class TidList implements Cloneable {
 
-	// FIXME - is it useless ?
-	abstract public TIntIterator get(final int item);
+	private int[] indexAndFreqs;
 
-	abstract public TIntIterable getIterable(final int item);
+	public TidList(Counters c, int highestTidList) {
+		this(c.distinctTransactionsCounts, highestTidList);
+	}
 
-	abstract public void addTransaction(final int item, final int transaction);
+	public TidList(final int[] lengths, int highestTidList) {
+		int startPos = 0;
+		int top = Math.min(highestTidList, lengths.length);
+		this.indexAndFreqs = new int[top * 2];
+		for (int i = 0; i < top; i++) {
+			int itemIndex = i << 1;
+			if (lengths[i] > 0) {
+				this.indexAndFreqs[itemIndex] = startPos;
+				startPos += lengths[i];
+			} else {
+				this.indexAndFreqs[itemIndex] = -1;
+			}
+		}
+		this.allocateArray(startPos);
+	}
 
+	abstract void allocateArray(int size);
+
+	
+	
+	public TIntIterator get(final int item) {
+		int itemIndex = item << 1;
+		if (itemIndex > this.indexAndFreqs.length || this.indexAndFreqs[itemIndex] == -1) {
+			throw new IllegalArgumentException("item " + item + " has no tidlist");
+		}
+		final int startPos = this.indexAndFreqs[itemIndex];
+		final int length = this.indexAndFreqs[itemIndex + 1];
+		return new TidIterator(length, startPos);
+	}
+
+	public TIntIterable getIterable(final int item) {
+		return new TIntIterable() {
+
+			@Override
+			public TIntIterator iterator() {
+				return get(item);
+			}
+		};
+	}
+	
+	public void addTransaction(int item, int transaction) {
+		int itemIndex = item << 1;
+		if (itemIndex > this.indexAndFreqs.length || this.indexAndFreqs[itemIndex] == -1) {
+			throw new IllegalArgumentException("item " + item + " has no tidlist");
+		}
+		int start = this.indexAndFreqs[itemIndex];
+		int index = this.indexAndFreqs[itemIndex + 1];
+		this.write(start + index, transaction);
+		this.indexAndFreqs[itemIndex + 1]++;
+	}
+
+	abstract void write(int position, int transaction);
+
+	abstract int read(int position);
+
+	
+	
+	
 	public interface TIntIterable {
 		public TIntIterator iterator();
 	}
+
+	private class TidIterator implements TIntIterator {
+		private int index = 0;
+		private int length;
+		private int startPos;
+
+		private TidIterator(int length, int startPos) {
+			super();
+			this.length = length;
+			this.startPos = startPos;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean hasNext() {
+			return this.index < this.length;
+		}
+
+		@Override
+		public int next() {
+			int res = read(this.startPos + this.index);
+			this.index++;
+			return res;
+		}
+	}
+	
+	
 
 	public String toString(int[] items) {
 		StringBuilder sb = new StringBuilder("[");
@@ -61,7 +150,9 @@ public abstract class TidList implements Cloneable {
 	@Override
 	public TidList clone() {
 		try {
-			return (TidList) super.clone();
+			TidList c = (TidList) super.clone();
+			c.indexAndFreqs = Arrays.copyOf(this.indexAndFreqs, this.indexAndFreqs.length);
+			return c;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}

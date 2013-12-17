@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 import fr.liglab.mining.internals.Counters;
 
-public class IntConsecutiveItemsConcatenatedTidList extends ConsecutiveItemsConcatenatedTidList {
+public class IntConsecutiveItemsConcatenatedTidList extends TidList {
 
 	public static boolean compatible(int maxTid) {
 		return true;
