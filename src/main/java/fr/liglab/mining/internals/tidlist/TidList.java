@@ -101,7 +101,7 @@ public abstract class TidList implements Cloneable {
 		private int length;
 		private int startPos;
 
-		private TidIterator(int length, int startPos) {
+		TidIterator(int length, int startPos) {
 			super();
 			this.length = length;
 			this.startPos = startPos;

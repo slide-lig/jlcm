@@ -132,8 +132,8 @@ public final class ExplorationStep implements Cloneable {
 					// " with "+
 					// candidate+" ("+this.counters.getReverseRenaming()[candidate]+")");
 
-					Counters candidateCounts = new Counters(this.counters.minSupport, support.iterator(), candidate,
-							this.dataset.getIgnoredItems(), this.counters.maxFrequent);
+					Counters candidateCounts = new Counters(this.counters.minSupport, support.iterator(),
+							candidate, this.counters.maxFrequent);
 
 					int greatest = Integer.MIN_VALUE;
 					for (int i = 0; i < candidateCounts.closure.length; i++) {

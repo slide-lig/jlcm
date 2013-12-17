@@ -25,8 +25,8 @@ import java.util.Arrays;
 
 import fr.liglab.mining.internals.Counters;
 
-public final class UShortIndexedTransactionsList extends IndexedTransactionsList {
-	private char[] concatenated;
+public final class UShortIndexedTransactionsList extends TransactionsList {
+	char[] concatenated;
 
 	public static boolean compatible(Counters c) {
 		return c.getMaxFrequent() < Character.MAX_VALUE;
@@ -46,7 +46,7 @@ public final class UShortIndexedTransactionsList extends IndexedTransactionsList
 	}
 
 	@Override
-	void writeItem(int item) {
+	public void addItem(int item) {
 		// MAX_VALUE is for empty;
 		if (item == Character.MAX_VALUE) {
 			throw new IllegalArgumentException(item + " too big for a char");
@@ -67,7 +67,7 @@ public final class UShortIndexedTransactionsList extends IndexedTransactionsList
 		return new TransIter();
 	}
 
-	private final class TransIter extends BasicTransIter {
+	class TransIter extends IndexedReusableIterator {
 
 		@Override
 		boolean isNextPosValid() {
@@ -83,6 +83,5 @@ public final class UShortIndexedTransactionsList extends IndexedTransactionsList
 		int getPosVal() {
 			return concatenated[this.pos];
 		}
-
 	}
 }

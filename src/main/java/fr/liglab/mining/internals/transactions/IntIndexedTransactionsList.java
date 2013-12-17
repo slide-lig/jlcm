@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 import fr.liglab.mining.internals.Counters;
 
-public final class IntIndexedTransactionsList extends IndexedTransactionsList {
+public final class IntIndexedTransactionsList extends TransactionsList {
 
 	public static boolean compatible(Counters c) {
 		return true;
@@ -35,7 +35,7 @@ public final class IntIndexedTransactionsList extends IndexedTransactionsList {
 		return c.distinctTransactionsCount - 1;
 	}
 
-	private int[] concatenated;
+	int[] concatenated;
 
 	public IntIndexedTransactionsList(Counters c) {
 		this(c.distinctTransactionLengthSum, c.distinctTransactionsCount);
@@ -52,7 +52,7 @@ public final class IntIndexedTransactionsList extends IndexedTransactionsList {
 	}
 
 	@Override
-	void writeItem(int item) {
+	public void addItem(int item) {
 		this.concatenated[this.writeIndex] = item;
 		this.writeIndex++;
 	}
@@ -64,8 +64,8 @@ public final class IntIndexedTransactionsList extends IndexedTransactionsList {
 		return o;
 	}
 
-	private final class TransIter extends BasicTransIter {
-
+	private final class TransIter extends IndexedReusableIterator {
+		
 		@Override
 		boolean isNextPosValid() {
 			return concatenated[this.nextPos] != -1;
@@ -80,7 +80,5 @@ public final class IntIndexedTransactionsList extends IndexedTransactionsList {
 		int getPosVal() {
 			return concatenated[this.pos];
 		}
-
 	}
-
 }

@@ -27,12 +27,11 @@ import fr.liglab.mining.PLCM;
 import fr.liglab.mining.PLCM.PLCMCounters;
 import fr.liglab.mining.internals.tidlist.IntConsecutiveItemsConcatenatedTidList;
 import fr.liglab.mining.internals.tidlist.TidList;
-import fr.liglab.mining.internals.tidlist.UShortConsecutiveItemsConcatenatedTidList;
 import fr.liglab.mining.internals.tidlist.TidList.TIntIterable;
+import fr.liglab.mining.internals.tidlist.UShortConsecutiveItemsConcatenatedTidList;
 import fr.liglab.mining.internals.transactions.IntIndexedTransactionsList;
-import fr.liglab.mining.internals.transactions.ReusableTransactionIterator;
+import fr.liglab.mining.internals.transactions.TransactionIterator;
 import fr.liglab.mining.internals.transactions.TransactionsList;
-import fr.liglab.mining.internals.transactions.TransactionsWriter;
 import fr.liglab.mining.internals.transactions.UShortIndexedTransactionsList;
 import gnu.trove.iterator.TIntIterator;
 
@@ -98,22 +97,20 @@ public class Dataset implements Cloneable {
 			this.tidLists = new IntConsecutiveItemsConcatenatedTidList(counters, tidListBound);
 		}
 
-		TransactionsWriter writer = this.transactions.getWriter();
+		this.transactions.startWriting();
 		while (transactions.hasNext()) {
 			TransactionReader transaction = transactions.next();
 			if (transaction.getTransactionSupport() != 0 && transaction.hasNext()) {
-				final int transId = writer.beginTransaction(transaction.getTransactionSupport());
+				final int transId = this.transactions.beginTransaction(transaction.getTransactionSupport());
 
 				while (transaction.hasNext()) {
 					final int item = transaction.next();
-					writer.addItem(item);
-
+					this.transactions.addItem(item);
+					
 					if (item < tidListBound) {
 						this.tidLists.addTransaction(item, transId);
 					}
 				}
-
-				writer.endTransaction();
 			}
 		}
 	}
@@ -121,17 +118,6 @@ public class Dataset implements Cloneable {
 	public void compress(int coreItem) {
 		((PLCM.PLCMThread) Thread.currentThread()).counters[PLCMCounters.TransactionsCompressions.ordinal()]++;
 		this.transactions.compress(coreItem);
-	}
-
-	/**
-	 * In this implementation the inputted transactions are assumed to be
-	 * filtered, therefore it returns null. However this is not true for
-	 * subclasses.
-	 * 
-	 * @return items known to have a 100% support in this dataset
-	 */
-	int[] getIgnoredItems() {
-		return null; // we assume this class always receives
 	}
 
 	/**
@@ -162,7 +148,7 @@ public class Dataset implements Cloneable {
 	protected final class TransactionsIterator implements Iterator<TransactionReader> {
 
 		protected final TIntIterator it;
-		private final ReusableTransactionIterator transIter;
+		private final TransactionIterator transIter;
 
 		public TransactionsIterator(TIntIterator tids) {
 			this.it = tids;

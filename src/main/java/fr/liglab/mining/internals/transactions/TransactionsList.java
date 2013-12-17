@@ -21,7 +21,11 @@
 
 package fr.liglab.mining.internals.transactions;
 
+import fr.liglab.mining.internals.Counters;
 import gnu.trove.iterator.TIntIterator;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * Stores transactions. Items in transactions are assumed to be sorted in
@@ -29,27 +33,192 @@ import gnu.trove.iterator.TIntIterator;
  */
 public abstract class TransactionsList implements Iterable<IterableTransaction>, Cloneable {
 
+	int[] indexAndFreqs;
+	private int size = 0;
+	private int transId = -1;
+	int writeIndex = 0;
+	
+	public TransactionsList(Counters c) {
+		this(c.distinctTransactionsCount);
+	}
+
+	public TransactionsList(int nbTransactions) {
+		this.indexAndFreqs = new int[nbTransactions << 1];
+		Arrays.fill(this.indexAndFreqs, -1);
+	}
+	
 	@Override
 	public TransactionsList clone() {
 		try {
-			return (TransactionsList) super.clone();
+			TransactionsList o = (TransactionsList) super.clone();
+			o.indexAndFreqs = Arrays.copyOf(this.indexAndFreqs, this.indexAndFreqs.length);
+			return o;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	abstract public ReusableTransactionIterator getIterator();
-
-	abstract public TIntIterator getIdIterator();
-
-	abstract public TransactionsWriter getWriter();
-
 	/**
 	 * @return how many IterableTransaction are behind this object
 	 */
-	abstract public int size();
+	final public int size() {
+		return this.size;
+	}
+	
+	final public void startWriting() {
+		this.transId = -1;
+	}
 
+	public abstract void addItem(int item);
+	
+	public int beginTransaction(int support) {
+		this.transId++;
+		int startPos = this.transId << 1;
+		this.indexAndFreqs[startPos] = TransactionsList.this.writeIndex;
+		this.indexAndFreqs[startPos + 1] = support;
+		if (support != 0) {
+			this.size++;
+		}
+		return this.transId;
+	}
+	
+	final int getTransSupport(int trans) {
+		int startPos = trans << 1;
+		return this.indexAndFreqs[startPos + 1];
+	}
+
+	final void setTransSupport(int trans, int s) {
+		int startPos = trans << 1;
+		if (s != 0 && this.indexAndFreqs[startPos + 1] == 0) {
+			this.size++;
+		} else if (s == 0 && this.indexAndFreqs[startPos + 1] != 0) {
+			this.size--;
+		}
+		this.indexAndFreqs[startPos + 1] = s;
+	}
+	
+	@Override
+	public Iterator<IterableTransaction> iterator() {
+		return new Iter();
+	}
+	
+	abstract public TransactionIterator getIterator();
+	
+	final public TIntIterator getIdIterator() {
+		return new IdIter();
+	}
+	
+	final void positionIterator(int transaction, IndexedReusableIterator iter) {
+		int startPos = transaction << 1;
+		if (startPos >= this.indexAndFreqs.length || this.indexAndFreqs[startPos] == -1) {
+			throw new IllegalArgumentException("transaction " + transaction + " does not exist");
+		} else {
+			int endPos = startPos + 2;
+			int end;
+			if (endPos < this.indexAndFreqs.length) {
+				end = this.indexAndFreqs[endPos];
+				if (end == -1) {
+					end = this.writeIndex;
+				}
+			} else {
+				end = this.writeIndex;
+			}
+			iter.set(this.indexAndFreqs[startPos], end);
+		}
+	}
+
+	final private class Iter implements Iterator<IterableTransaction> {
+		private int pos;
+		private int nextPos = -1;
+
+		public Iter() {
+			this.findNext();
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public IterableTransaction next() {
+			this.pos = this.nextPos;
+			this.findNext();
+			final int p = this.pos;
+			return new IterableTransaction() {
+				private IndexedReusableIterator iter = (IndexedReusableIterator) getIterator();
+
+				@Override
+				public TransactionIterator iterator() {
+					positionIterator(p, this.iter);
+					return this.iter;
+				}
+			};
+		}
+
+		private void findNext() {
+			while (true) {
+				this.nextPos++;
+				int nextPosStart = this.nextPos << 1;
+				if (nextPosStart >= indexAndFreqs.length || indexAndFreqs[nextPosStart] == -1) {
+					this.nextPos = -1;
+					return;
+				}
+				if (indexAndFreqs[nextPosStart + 1] > 0) {
+					return;
+				}
+			}
+		}
+
+		@Override
+		public boolean hasNext() {
+			return this.nextPos != -1;
+		}
+	}
+
+	
+	final private class IdIter implements TIntIterator {
+		private int pos;
+		private int nextPos = -1;
+
+		public IdIter() {
+			this.findNext();
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int next() {
+			this.pos = this.nextPos;
+			this.findNext();
+			return this.pos;
+		}
+
+		private void findNext() {
+			while (true) {
+				this.nextPos++;
+				int nextPosStart = this.nextPos << 1;
+				if (nextPosStart >= indexAndFreqs.length || indexAndFreqs[nextPosStart] == -1) {
+					this.nextPos = -1;
+					return;
+				}
+				if (indexAndFreqs[nextPosStart + 1] > 0) {
+					return;
+				}
+			}
+		}
+
+		@Override
+		public boolean hasNext() {
+			return this.nextPos != -1;
+		}
+	}
+	
+	
 	public void compress(final int prefixEnd) {
 		int[] sortList = new int[this.size()];
 		TIntIterator idIter = this.getIdIterator();
@@ -72,8 +241,8 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 	 * @param it2
 	 * @param prefixEnd
 	 */
-	private static void sort(final int[] array, final int start, final int end, final ReusableTransactionIterator it1,
-			final ReusableTransactionIterator it2, int prefixEnd) {
+	private static void sort(final int[] array, final int start, final int end, final TransactionIterator it1,
+			final TransactionIterator it2, int prefixEnd) {
 		if (start >= end - 1) {
 			// size 0 or 1
 			return;
@@ -240,6 +409,83 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 			}
 		}
 	}
+	
+	
+	
+	
+	
+
+	abstract class IndexedReusableIterator implements TransactionIterator {
+		private int transNum;
+		int pos;
+		int nextPos;
+		private int end;
+		private boolean first;
+
+		final void set(int begin, int end) {
+			this.nextPos = begin - 1;
+			this.end = end;
+			this.first = true;
+		}
+
+		@Override
+		public final void setTransaction(int transaction) {
+			this.transNum = transaction;
+			positionIterator(transaction, this);
+		}
+
+		@Override
+		public final int getTransactionSupport() {
+			return getTransSupport(this.transNum);
+		}
+
+		@Override
+		public final void setTransactionSupport(int s) {
+			setTransSupport(this.transNum, s);
+		}
+		
+		private void findNext() {
+			while (true) {
+				this.nextPos++;
+				if (this.nextPos == this.end) {
+					this.nextPos = -1;
+					return;
+				}
+				if (isNextPosValid()) {
+					return;
+				}
+			}
+		}
+
+		abstract boolean isNextPosValid();
+
+		abstract void removePosVal();
+
+		abstract int getPosVal();
+
+		@Override
+		public int next() {
+			this.pos = this.nextPos;
+			this.findNext();
+			return getPosVal();
+		}
+
+		@Override
+		public boolean hasNext() {
+			if (this.first) {
+				this.first = false;
+				findNext();
+			}
+			return this.nextPos != -1;
+		}
+
+		@Override
+		public void remove() {
+			this.removePosVal();
+		}
+	}
+	
+	
 
 	@Override
 	public String toString() {
@@ -272,31 +518,28 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		freqs[Short.MAX_VALUE * 2 - 1] = 2;
 		freqs[Short.MAX_VALUE * 2] = 2;
 		// TransactionsList tl = new VIntConcatenatedTransactionsList(3, freqs);
-		TransactionsList tl = new IntIndexedTransactionsList(16, 3);
+		IntIndexedTransactionsList tl = new IntIndexedTransactionsList(16, 3);
 		// TransactionsList tl = new ConcatenatedTransactionsList(16, 3);
-		TransactionsWriter w = tl.getWriter();
-		w.beginTransaction(Short.MAX_VALUE + 3);
-		w.addItem(1);
-		w.addItem(2);
-		w.addItem(3);
-		w.addItem(5);
-		w.addItem(Short.MAX_VALUE * 2 - 2);
-		w.addItem(Short.MAX_VALUE * 2);
-		w.endTransaction();
-		w.beginTransaction(1);
-		w.addItem(1);
-		w.addItem(2);
-		w.addItem(5);
-		w.addItem(Short.MAX_VALUE * 2 - 1);
-		w.endTransaction();
-		w.beginTransaction(3);
-		w.addItem(1);
-		w.addItem(2);
-		w.addItem(3);
-		w.addItem(5);
-		w.addItem(Short.MAX_VALUE * 2 - 1);
-		w.addItem(Short.MAX_VALUE * 2);
-		w.endTransaction();
+		tl.startWriting();
+		tl.beginTransaction(Short.MAX_VALUE + 3);
+		tl.addItem(1);
+		tl.addItem(2);
+		tl.addItem(3);
+		tl.addItem(5);
+		tl.addItem(Short.MAX_VALUE * 2 - 2);
+		tl.addItem(Short.MAX_VALUE * 2);
+		tl.beginTransaction(1);
+		tl.addItem(1);
+		tl.addItem(2);
+		tl.addItem(5);
+		tl.addItem(Short.MAX_VALUE * 2 - 1);
+		tl.beginTransaction(3);
+		tl.addItem(1);
+		tl.addItem(2);
+		tl.addItem(3);
+		tl.addItem(5);
+		tl.addItem(Short.MAX_VALUE * 2 - 1);
+		tl.addItem(Short.MAX_VALUE * 2);
 		System.out.println(tl);
 		tl.compress(4);
 		System.out.println(tl);

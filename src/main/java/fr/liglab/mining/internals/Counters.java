@@ -154,14 +154,10 @@ public final class Counters implements Cloneable {
 	 * @param extension
 	 *            the item on which we're projecting - it won't appear in *any*
 	 *            counter (not even 'closure')
-	 * @param ignoredItems
-	 *            may be null, if it's not contained items won't appear in any
-	 *            counter either
 	 * @param maxItem
 	 *            biggest index among items to be found in "transactions"
 	 */
-	public Counters(int minimumSupport, Iterator<TransactionReader> transactions, int extension, int[] ignoredItems,
-			final int maxItem) {
+	public Counters(int minimumSupport, Iterator<TransactionReader> transactions, int extension, final int maxItem) {
 
 		this.renaming = null;
 		this.minSupport = minimumSupport;
@@ -200,15 +196,6 @@ public final class Counters implements Cloneable {
 		this.supportCounts[extension] = 0;
 		this.distinctTransactionsCounts[extension] = 0;
 		this.maxCandidate = extension;
-
-		if (ignoredItems != null) {
-			for (int item : ignoredItems) {
-				if (item <= maxItem) {
-					this.supportCounts[item] = 0;
-					this.distinctTransactionsCounts[item] = 0;
-				}
-			}
-		}
 
 		// item filtering and final computations : some are infrequent, some
 		// belong to closure
@@ -275,7 +262,7 @@ public final class Counters implements Cloneable {
 		this.transactionsCount = transactionsCounter;
 		this.distinctTransactionsCount = transactionsCounter;
 		this.renaming = new int[biggestItemID + 1];
-		Arrays.fill(renaming, -1);
+		Arrays.fill(this.renaming, -1);
 
 		// item filtering and final computations : some are infrequent, some
 		// belong to closure
@@ -372,7 +359,7 @@ public final class Counters implements Cloneable {
 	 * @return the renaming map from instantiation's base to current base
 	 */
 	public int[] getRenaming() {
-		return renaming;
+		return this.renaming;
 	}
 	
 	/**
@@ -433,7 +420,7 @@ public final class Counters implements Cloneable {
 	}
 
 	public int getMaxCandidate() {
-		return maxCandidate;
+		return this.maxCandidate;
 	}
 
 	/**
