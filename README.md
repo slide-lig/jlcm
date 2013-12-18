@@ -1,10 +1,6 @@
 # jLCM
 
-A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as 
-proposed by T.Uno & H.Arimura.
-
-It is multi-threaded, as proposed by Négrevergne et al., hence the name of its 
-main class : PLCM.
+A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno & H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class : PLCM.
 
 Reference papers :
 
@@ -18,9 +14,7 @@ Simulation, 2010
 
 ## Compiling and running jLCM
 
-Use [Maven](http://maven.apache.org/) to build the program.
-This should create `jLCM-1.0-jar-with-dependencies.jar`. 
-Run this jar without arguments to have more details about the invocation.
+Use [Maven](http://maven.apache.org/) to build the program. This should create `jLCM-1.0-jar-with-dependencies.jar`. Run this jar without arguments to have more details about the invocation.
 
 You may find example input files in the [FIMI repository](http://fimi.ua.ac.be/data/).
 

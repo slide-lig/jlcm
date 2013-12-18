@@ -38,9 +38,6 @@ public final class ExplorationStep implements Cloneable {
 	public static boolean verbose = false;
 	public static boolean ultraVerbose = false;
 
-	public final static String KEY_VIEW_SUPPORT_THRESHOLD = "toplcm.threshold.view";
-	public final static String KEY_LONG_TRANSACTIONS_THRESHOLD = "toplcm.threshold.long";
-
 	/**
 	 * closure of parent's pattern UNION extension
 	 */

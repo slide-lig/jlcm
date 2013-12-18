@@ -307,8 +307,8 @@ public class PLCM {
 	public static void printMan(Options options) {
 		String syntax = "java fr.liglab.mining.PLCM [OPTIONS] INPUT_PATH MINSUP [OUTPUT_PATH]";
 		String header = "\nIf OUTPUT_PATH is missing, patterns are printed to standard output.\nOptions are :";
-		String footer = "\nFor advanced tuning you may also set properties : "
-				+ ExplorationStep.KEY_LONG_TRANSACTIONS_THRESHOLD + ", " + ExplorationStep.KEY_VIEW_SUPPORT_THRESHOLD;
+		String footer = "Copyright 2013 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, "
+				+ "Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS";
 
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp(80, syntax, header, options, footer);
