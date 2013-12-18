@@ -1,5 +1,5 @@
 /*
-	This file is part of jLCM
+	This file is part of jLCM - see https://github.com/martinkirch/jlcm/
 	
 	Copyright 2013 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS
 
