@@ -21,14 +21,15 @@
 
 package fr.liglab.mining.internals;
 
+import java.util.Arrays;
+import java.util.Calendar;
+
+import fr.liglab.mining.internals.Counters.ExtensionsIterator;
 import fr.liglab.mining.internals.Dataset.TransactionsIterable;
 import fr.liglab.mining.internals.Selector.WrongFirstParentException;
 import fr.liglab.mining.io.FileReader;
 import fr.liglab.mining.util.ItemsetsFactory;
 import gnu.trove.map.hash.TIntIntHashMap;
-
-import java.util.Arrays;
-import java.util.Calendar;
 
 /**
  * Represents an LCM recursion step. Its also acts as a Dataset factory.
@@ -58,7 +59,7 @@ public final class ExplorationStep implements Cloneable {
 	 */
 	protected Selector selectChain;
 
-	protected final FrequentsIterator candidates;
+	protected final ExtensionsIterator candidates;
 
 	/**
 	 * When an extension fails first-parent test, it ends up in this map. Keys
@@ -92,7 +93,7 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	private ExplorationStep(int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
-			FrequentsIterator candidates, TIntIntHashMap failedFPTests) {
+			ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {
 		super();
 		this.pattern = pattern;
 		this.core_item = core_item;

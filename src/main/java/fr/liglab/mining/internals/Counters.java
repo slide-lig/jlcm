@@ -133,17 +133,6 @@ public final class Counters implements Cloneable {
 	 * Exclusive index of the first item >= core_item in current base
 	 */
 	protected int maxCandidate;
-	
-	/**
-	 * We use our own map, although it will contain a single item most of the time, because 
-	 * ThreadLocal causes (huge) memory leaks when used as a non-static field.
-	 * @see getLocalFrequentsIterator
-	 */
-	private static final ThreadLocal<FrequentIterator> localFrequentsIterator = new ThreadLocal<FrequentIterator>() {
-		@Override protected FrequentIterator initialValue() {
-			return new FrequentIterator();
-		}
-	};
 
 	/**
 	 * Does item counting over a projected dataset
@@ -428,26 +417,15 @@ public final class Counters implements Cloneable {
 	 * 
 	 * @return a thread-safe iterator over frequent items (in ascending order)
 	 */
-	public FrequentsIterator getExtensionsIterator() {
+	public ExtensionsIterator getExtensionsIterator() {
 		return new ExtensionsIterator(this.maxCandidate);
-	}
-
-	/**
-	 * Notice: enumerated item IDs are in local base, use this.reverseRenaming
-	 * 
-	 * @return an iterator over frequent items (in ascending order)
-	 */
-	public FrequentsIterator getLocalFrequentsIterator(final int from, final int to) {
-		FrequentIterator iterator = localFrequentsIterator.get();
-		iterator.recycle(from, to, this);
-		return iterator;
 	}
 
 	/**
 	 * Thread-safe iterator over frequent items (ie. those having a support
 	 * count in [minSup, 100%[)
 	 */
-	protected class ExtensionsIterator implements FrequentsIterator {
+	public final class ExtensionsIterator {
 		private final AtomicInteger index;
 		private final int max;
 
@@ -485,63 +463,10 @@ public final class Counters implements Cloneable {
 			}
 		}
 
-		@Override
 		public int peek() {
 			return this.index.get();
 		}
 
-		@Override
-		public int last() {
-			return this.max;
-		}
-	}
-
-	static protected class FrequentIterator implements FrequentsIterator {
-
-		private int index;
-		private int max;
-		private int[] supportsFilter;
-		
-		FrequentIterator() {
-			this.max = 0;
-			this.index = 0;
-		}
-		
-		public void recycle(final int from, final int to, final Counters instance) {
-			this.max = to;
-			this.index = from;
-			this.supportsFilter = instance.compactedArrays ? null : instance.supportCounts;
-		}
-
-		@Override
-		public int next() {
-			if (this.supportsFilter == null) {
-				final int nextIndex = this.index++;
-				if (nextIndex < this.max) {
-					return nextIndex;
-				} else {
-					return -1;
-				}
-			} else {
-				while (true) {
-					final int nextIndex = this.index++;
-					if (nextIndex < this.max) {
-						if (this.supportsFilter[nextIndex] > 0) {
-							return nextIndex;
-						}
-					} else {
-						return -1;
-					}
-				}
-			}
-		}
-
-		@Override
-		public int peek() {
-			return this.index;
-		}
-
-		@Override
 		public int last() {
 			return this.max;
 		}
