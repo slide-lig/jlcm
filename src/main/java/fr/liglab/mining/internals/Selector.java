@@ -100,6 +100,10 @@ public abstract class Selector {
 	final Selector copy() {
 		return this.append(null);
 	}
+	
+	final protected Selector getNext() {
+		return this.next;
+	}
 
 	/**
 	 * Thrown when a Selector finds that an extension won't be the first parent

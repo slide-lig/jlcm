@@ -195,12 +195,11 @@ public final class ExplorationStep implements Cloneable {
 			this.failedFPTests = new TIntIntHashMap();
 
 			if (parent.selectChain == null) {
-				this.selectChain = null;
+				this.selectChain = new FirstParentTest(null);
 			} else {
 				this.selectChain = parent.selectChain.copy();
 			}
 			
-			this.selectChain = new FirstParentTest(this.selectChain);
 			this.dataset = instanciateDataset(parent, support);
 			this.candidates = this.counters.getExtensionsIterator();
 		}

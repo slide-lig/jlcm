@@ -49,7 +49,11 @@ final class FirstParentTest extends Selector {
 
 	@Override
 	protected Selector copy(Selector newNext) {
-		return new FirstParentTest(newNext);
+		if (newNext == null && this.getNext() == null) {
+			return this;
+		} else {
+			return new FirstParentTest(newNext);
+		}
 	}
 
 	private boolean isAincludedInB(final TIntIterator aIt, final TIntIterator bIt) {
