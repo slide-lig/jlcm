@@ -21,9 +21,11 @@
 
 package fr.liglab.mining.io;
 
+import fr.liglab.mining.internals.ExplorationStep;
+
 
 public interface PatternsCollector {
-	public void collect(final int support, final int[] pattern);
+	public void collect(final ExplorationStep state);
 
 	/**
 	 * Call this once mining has terminated. Behavior of the collect method is

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import fr.liglab.mining.internals.ExplorationStep;
 import fr.liglab.mining.io.PatternsCollector;
 
 /**
@@ -63,7 +64,10 @@ public class StubPatternsCollector implements PatternsCollector {
 		return expected.isEmpty();
 	}
 
-	public void collect(int support, int[] pattern) {
+	public void collect(final ExplorationStep state) {
+		final int support = state.counters.transactionsCount;
+		final int[] pattern = state.pattern;
+		
 		Set<Integer> p = new TreeSet<Integer>();
 		for (int item : pattern) {
 			p.add(item);

@@ -77,8 +77,8 @@ public class PLCM {
 		}
 	}
 
-	public final void collect(int support, int[] pattern) {
-		this.collector.collect(support, pattern);
+	public final void collect(ExplorationStep step) {
+		this.collector.collect(step);
 	}
 
 	void initializeAndStartThreads(final ExplorationStep initState) {
@@ -93,7 +93,7 @@ public class PLCM {
 	 */
 	public final void lcm(final ExplorationStep initState) {
 		if (initState.pattern.length > 0) {
-			this.collector.collect(initState.counters.transactionsCount, initState.pattern);
+			this.collector.collect(initState);
 		}
 
 		this.initializeAndStartThreads(initState);
@@ -263,7 +263,7 @@ public class PLCM {
 		}
 
 		private void lcm(ExplorationStep state) {
-			collect(state.counters.transactionsCount, state.pattern);
+			collect(state);
 
 			this.lock.writeLock().lock();
 			this.stackedJobs.add(state);

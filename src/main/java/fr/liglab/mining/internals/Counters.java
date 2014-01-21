@@ -335,6 +335,14 @@ public final class Counters implements Cloneable {
 						reverseRenaming.length), Arrays.copyOf(renaming, renaming.length), compactedArrays,
 				maxCandidate);
 	}
+	
+	/**
+	 * @return the number of not-closed frequent itemsets skipped by the closure operation
+	 */
+	public int countSkippedItemsets() {
+		return this.closure.length;
+	}
+
 
 	/**
 	 * @return greatest frequent item's ID, which is also the greatest valid

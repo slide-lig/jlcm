@@ -23,6 +23,8 @@ package fr.liglab.mining.io;
 
 import java.io.IOException;
 
+import fr.liglab.mining.internals.ExplorationStep;
+
 /**
  * A thread safe PatternsCollector that will write to multiple files, one per mining thread.
  */
@@ -45,8 +47,8 @@ public class MultiThreadedFileCollector implements PatternsCollector {
 	}
 	
 	@Override
-	public void collect(int support, int[] pattern) {
-		this.collectors[(int) Thread.currentThread().getId()].collect(support, pattern);
+	public void collect(final ExplorationStep state) {
+		this.collectors[(int) Thread.currentThread().getId()].collect(state);
 	}
 
 	@Override

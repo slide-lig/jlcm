@@ -91,6 +91,19 @@ public final class ExplorationStep implements Cloneable {
 
 		this.failedFPTests = new TIntIntHashMap();
 	}
+	
+	/**
+	 * Start exploration on an abstract dataset
+	 */
+	public ExplorationStep(int minimumSupport, Iterable<TransactionReader> source) {
+		this.core_item = Integer.MAX_VALUE;
+		this.selectChain = null;
+		this.counters = new Counters(minimumSupport, source.iterator());
+		this.pattern = this.counters.closure;
+		this.dataset = new Dataset(this.counters, source.iterator());
+		this.candidates = this.counters.getExtensionsIterator();
+		this.failedFPTests = new TIntIntHashMap();
+	}
 
 	private ExplorationStep(int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
 			ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {

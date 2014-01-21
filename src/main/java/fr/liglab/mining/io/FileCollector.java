@@ -29,6 +29,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
+import fr.liglab.mining.internals.ExplorationStep;
+
 
 /**
  * a thread-unsafe PatternsCollector that write to the path provided at instanciation
@@ -60,7 +62,9 @@ public class FileCollector implements PatternsCollector {
 		buffer.clear();
 	}
 	
-	public void collect(final int support, final int[] pattern) {
+	public void collect(final ExplorationStep state) {
+		final int support = state.counters.transactionsCount;
+		final int[] pattern = state.pattern;
 		putInt(support);
 		safePut((byte) '\t'); // putChar('\t') would append TWO bytes, but in ASCII we need only one
 		

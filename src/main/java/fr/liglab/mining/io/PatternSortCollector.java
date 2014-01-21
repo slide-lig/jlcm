@@ -23,6 +23,8 @@ package fr.liglab.mining.io;
 
 import java.util.Arrays;
 
+import fr.liglab.mining.internals.ExplorationStep;
+
 /**
  * a PatternsCollector decorator : it will sort items in transactions before
  * transmitting them to the enclosed PatternsCollector
@@ -35,10 +37,9 @@ public class PatternSortCollector implements PatternsCollector {
 		this.decorated = wrapped;
 	}
 
-	public void collect(final int support, final int[] pattern) {
-		int[] sorted = Arrays.copyOf(pattern, pattern.length);
-		Arrays.sort(sorted);
-		this.decorated.collect(support, sorted);
+	public void collect(final ExplorationStep state) {
+		Arrays.sort(state.pattern);
+		this.decorated.collect(state);
 	}
 
 	public long close() {

@@ -24,6 +24,8 @@ package fr.liglab.mining.io;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import fr.liglab.mining.internals.ExplorationStep;
+
 /**
  * The collector that doesn't care at all about outputting
  */
@@ -33,9 +35,9 @@ public class NullCollector implements PatternsCollector {
 	protected AtomicLong collectedLength = new AtomicLong(0);
 
 	@Override
-	public void collect(int support, int[] pattern) {
+	public void collect(final ExplorationStep state) {
 		this.collectedCount.incrementAndGet();
-		this.collectedLength.addAndGet(pattern.length);
+		this.collectedLength.addAndGet(state.pattern.length);
 	}
 
 	@Override
