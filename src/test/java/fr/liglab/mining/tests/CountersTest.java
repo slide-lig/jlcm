@@ -31,20 +31,19 @@ import fr.liglab.mining.internals.Counters;
 import fr.liglab.mining.internals.ExplorationStep;
 import fr.liglab.mining.internals.Dataset.TransactionsIterable;
 
-public class CompactionTest {
+public class CountersTest {
 
 	@Test
-	public void test() {
+	public void testCompressRenaming() {
 		
 		ExplorationStep init = new ExplorationStep(2, FileReaderTest.PATH_MICRO);
 		
 		TransactionsIterable support = init.dataset.getSupport(1);
 		Counters candidateCounts = new Counters(2, support.iterator(), 1, 5);
-		System.out.println(Arrays.toString(init.counters.getReverseRenaming()));
+		
 		int[] renaming = candidateCounts.compressRenaming(init.counters.getReverseRenaming());
 		
-		System.out.println(Arrays.toString(renaming));
-		
+		assertArrayEquals(new int[] {0, -1, 1, 2, 3, -1}, renaming); 
 	}
 
 }
