@@ -36,7 +36,7 @@ import fr.liglab.mining.internals.ExplorationStep;
  * a thread-unsafe PatternsCollector that write to the path provided at instanciation
  * @see MultiThreadedFileCollector
  */
-public class FileCollector implements PatternsCollector {
+public class FileCollector implements PatternsWriter {
 	
 	// this should be profiled and tuned !
 	protected static final int BUFFER_CAPACITY = 4096;
@@ -55,28 +55,26 @@ public class FileCollector implements PatternsCollector {
 			System.err.println("Warning : overwriting output file "+path);
 		}
 		
-		stream = new FileOutputStream(file, false);
-		channel = stream.getChannel();
+		this.stream = new FileOutputStream(file, false);
+		this.channel = this.stream.getChannel();
 		
-		buffer = ByteBuffer.allocateDirect(BUFFER_CAPACITY);
-		buffer.clear();
+		this.buffer = ByteBuffer.allocateDirect(BUFFER_CAPACITY);
+		this.buffer.clear();
 	}
-	
-	public void collect(final ExplorationStep state) {
-		final int support = state.counters.transactionsCount;
-		final int[] pattern = state.pattern;
+
+	public void collect(int support, int[] pattern, int length) {
 		putInt(support);
 		safePut((byte) '\t'); // putChar('\t') would append TWO bytes, but in ASCII we need only one
 		
 		boolean addSeparator = false;
-		for (int item : pattern) {
+		for (int i = 0; i < length; i++) {
 			if (addSeparator) {
 				safePut((byte) ' ');
 			} else {
 				addSeparator = true;
 			}
 			
-			putInt(item);
+			putInt(pattern[i]);
 		}
 		
 		safePut((byte) '\n');
@@ -84,10 +82,14 @@ public class FileCollector implements PatternsCollector {
 		this.collectedLength += pattern.length;
 	}
 	
+	public final void collect(final ExplorationStep state) {
+		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
+	}
+	
 	protected void putInt(final int i) {
 		try {
 			byte[] asBytes = Integer.toString(i).getBytes(charset);
-			buffer.put(asBytes);
+			this.buffer.put(asBytes);
 		} catch (BufferOverflowException e) {
 			flush();
 			putInt(i);
@@ -96,7 +98,7 @@ public class FileCollector implements PatternsCollector {
 	
 	protected void safePut(final byte b) {
 		try {
-			buffer.put(b);
+			this.buffer.put(b);
 		} catch (BufferOverflowException e) {
 			flush();
 			safePut(b);
@@ -105,9 +107,9 @@ public class FileCollector implements PatternsCollector {
 	
 	protected void flush() {
 		try {
-			buffer.flip();
-			channel.write(buffer);
-			buffer.clear();
+			this.buffer.flip();
+			this.channel.write(this.buffer);
+			this.buffer.clear();
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
 		}
@@ -116,8 +118,8 @@ public class FileCollector implements PatternsCollector {
 	public long close() {
 		try {
 			flush();
-			channel.close();
-			stream.close();
+			this.channel.close();
+			this.stream.close();
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
 		}
@@ -137,13 +139,13 @@ public class FileCollector implements PatternsCollector {
 	 * @return how many patterns have been written so far
 	 */
 	public long getCollected() {
-		return collected;
+		return this.collected;
 	}
 	
 	/**
 	 * @return sum of collected patterns' lengths
 	 */
 	public long getCollectedLength() {
-		return collectedLength;
+		return this.collectedLength;
 	}
 }

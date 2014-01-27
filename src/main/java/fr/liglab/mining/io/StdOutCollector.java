@@ -21,19 +21,33 @@
 
 package fr.liglab.mining.io;
 
-import java.util.Arrays;
-
 import fr.liglab.mining.internals.ExplorationStep;
 
-public class StdOutCollector implements PatternsCollector {
+public class StdOutCollector implements PatternsWriter {
 
 	protected long collected = 0;
 	protected long collectedLength = 0;
 
 	synchronized public void collect(final ExplorationStep state) {
-		final int support = state.counters.transactionsCount;
-		final int[] pattern = state.pattern;
-		System.out.println(Integer.toString(support) + "\t" + Arrays.toString(pattern));
+		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
+	}
+	
+	synchronized public void collect(int support, int[] pattern, int length) {
+		System.out.print(Integer.toString(support) + "\t");
+		
+		boolean addSeparator = false;
+		for (int i = 0; i < length; i++) {
+			if (addSeparator) {
+				System.out.print(' ');
+			} else {
+				addSeparator = true;
+			}
+			
+			System.out.print(pattern[i]);
+		}
+		
+		System.out.println("");
+		
 		this.collected++;
 		this.collectedLength += pattern.length;
 	}

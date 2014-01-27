@@ -92,7 +92,7 @@ public final class Counters implements Cloneable {
 	 * getReverseRenaming to translate back these items, rather use parent's
 	 * reverseRenaming (or none for the initial dataset)
 	 */
-	final int[] closure;
+	public final int[] closure;
 
 	/**
 	 * Counts how many items have a support count in [minSupport; 100% [
@@ -336,14 +336,6 @@ public final class Counters implements Cloneable {
 				maxCandidate);
 	}
 	
-	/**
-	 * @return the number of not-closed frequent itemsets skipped by the closure operation
-	 */
-	public int countSkippedItemsets() {
-		return this.closure.length;
-	}
-
-
 	/**
 	 * @return greatest frequent item's ID, which is also the greatest valid
 	 *         index for arrays supportCounts and distinctTransactionsCounts

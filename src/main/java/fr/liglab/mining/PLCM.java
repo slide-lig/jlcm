@@ -38,10 +38,12 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import fr.liglab.mining.internals.ExplorationStep;
+import fr.liglab.mining.io.AllFISConverter;
 import fr.liglab.mining.io.MultiThreadedFileCollector;
 import fr.liglab.mining.io.NullCollector;
 import fr.liglab.mining.io.PatternSortCollector;
 import fr.liglab.mining.io.PatternsCollector;
+import fr.liglab.mining.io.PatternsWriter;
 import fr.liglab.mining.io.StdOutCollector;
 import fr.liglab.mining.util.MemoryPeakWatcherThread;
 import fr.liglab.mining.util.ProgressWatcherThread;
@@ -275,7 +277,8 @@ public class PLCM {
 
 		Options options = new Options();
 		CommandLineParser parser = new PosixParser();
-
+		
+		options.addOption("a", false, "Output all frequent itemsets, not only closed ones");
 		options.addOption(
 				"b",
 				false,
@@ -381,16 +384,24 @@ public class PLCM {
 		if (cmd.hasOption('b')) {
 			collector = new NullCollector();
 		} else {
+			PatternsWriter writer = null;
+			
 			if (outputPath != null) {
 				try {
-					collector = new MultiThreadedFileCollector(outputPath, nbThreads);
+					writer = new MultiThreadedFileCollector(outputPath, nbThreads);
 				} catch (IOException e) {
 					e.printStackTrace(System.err);
 					System.err.println("Aborting mining.");
 					System.exit(1);
 				}
 			} else {
-				collector = new StdOutCollector();
+				writer = new StdOutCollector();
+			}
+			
+			collector = writer;
+			
+			if (cmd.hasOption('a')) {
+				collector = new AllFISConverter(writer);
 			}
 
 			if (cmd.hasOption('s')) {

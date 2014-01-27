@@ -38,15 +38,17 @@ public final class ExplorationStep implements Cloneable {
 
 	public static boolean verbose = false;
 	public static boolean ultraVerbose = false;
-
+	
+	public final ExplorationStep parent;
+	
 	/**
 	 * closure of parent's pattern UNION extension
 	 */
 	public final int[] pattern;
 
 	/**
-	 * Extension item that led to this recursion step. Already included in
-	 * "pattern".
+	 * Extension item that led to this recursion step (internal ID) 
+	 * Already included in "pattern".
 	 */
 	public final int core_item;
 
@@ -76,6 +78,7 @@ public final class ExplorationStep implements Cloneable {
 	 *            transaction containing space-separated item IDs.
 	 */
 	public ExplorationStep(int minimumSupport, String path) {
+		this.parent = null;
 		this.core_item = Integer.MAX_VALUE;
 		this.selectChain = null;
 
@@ -96,6 +99,7 @@ public final class ExplorationStep implements Cloneable {
 	 * Start exploration on an abstract dataset
 	 */
 	public ExplorationStep(int minimumSupport, Iterable<TransactionReader> source) {
+		this.parent = null;
 		this.core_item = Integer.MAX_VALUE;
 		this.selectChain = null;
 		this.counters = new Counters(minimumSupport, source.iterator());
@@ -105,9 +109,10 @@ public final class ExplorationStep implements Cloneable {
 		this.failedFPTests = new TIntIntHashMap();
 	}
 
-	private ExplorationStep(int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
+	private ExplorationStep(ExplorationStep parent, int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
 			ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {
 		super();
+		this.parent = parent;
 		this.pattern = pattern;
 		this.core_item = core_item;
 		this.dataset = dataset;
@@ -183,6 +188,7 @@ public final class ExplorationStep implements Cloneable {
 	protected ExplorationStep(ExplorationStep parent, int extension, Counters candidateCounts,
 			TransactionsIterable support) {
 
+		this.parent = parent;
 		this.core_item = extension;
 		this.counters = candidateCounts;
 		int[] reverseRenaming = parent.counters.reverseRenaming;
@@ -213,21 +219,21 @@ public final class ExplorationStep implements Cloneable {
 				this.selectChain = parent.selectChain.copy();
 			}
 			
-			this.dataset = instanciateDataset(parent, support);
+			this.dataset = instanciateDataset(parent.counters, support);
 			this.candidates = this.counters.getExtensionsIterator();
 		}
 	}
 
-	private Dataset instanciateDataset(ExplorationStep parent, TransactionsIterable support) {
+	private Dataset instanciateDataset(Counters parentCounters, TransactionsIterable support) {
 
-		final int[] renaming = this.counters.compressRenaming(parent.counters.getReverseRenaming());
+		final int[] renaming = this.counters.compressRenaming(parentCounters.getReverseRenaming());
 
 		TransactionsRenamingDecorator filtered = new TransactionsRenamingDecorator(support.iterator(), renaming);
 
 		try {
-			Dataset dataset = new Dataset(this.counters, filtered, Integer.MAX_VALUE);
-			dataset.compress(this.core_item);
-			return dataset;
+			Dataset instance = new Dataset(this.counters, filtered, Integer.MAX_VALUE);
+			instance.compress(this.core_item);
+			return instance;
 			
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("WAT core_item = " + this.core_item);
@@ -266,7 +272,7 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	public ExplorationStep copy() {
-		return new ExplorationStep(pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates, failedFPTests);
+		return new ExplorationStep(parent, pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates, failedFPTests);
 	}
 
 	public Progress getProgression() {

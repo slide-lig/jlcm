@@ -29,7 +29,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import fr.liglab.mining.internals.ExplorationStep;
-import fr.liglab.mining.io.PatternsCollector;
+import fr.liglab.mining.io.PatternsWriter;
 
 /**
  * Firstly, fill expected patterns with expectCollect()
@@ -41,45 +41,28 @@ import fr.liglab.mining.io.PatternsCollector;
  * 
  * You should also assertTrue(thisCollector.isEmpty()) at the end 
  */
-public class StubPatternsCollector implements PatternsCollector {
+public class StubPatternsCollector implements PatternsWriter {
 	
-	protected static Map<Integer, Set<Set<Integer>>> expected = new TreeMap<Integer, Set<Set<Integer>>>();
+	protected Map<Integer, Set<Set<Integer>>> expected = new TreeMap<Integer, Set<Set<Integer>>>();
 	protected long collected = 0;
 	protected long collectedLength = 0;
-	
-	public void expectCollect(Integer support, Integer... patternItems) {
-		Set<Set<Integer>> supportExpectation = null;
-		
-		if (expected.containsKey(support)){
-			supportExpectation = expected.get(support);
-		} else {
-			supportExpectation = new HashSet<Set<Integer>>();
-			expected.put(support, supportExpectation);
-		}
-		
-		supportExpectation.add(new TreeSet<Integer>( Arrays.asList(patternItems)));
-	}
-	
-	public boolean isEmpty() {
-		return expected.isEmpty();
-	}
 
 	public void collect(final ExplorationStep state) {
-		final int support = state.counters.transactionsCount;
-		final int[] pattern = state.pattern;
-		
+		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
+	}
+	public void collect(int support, int[] pattern, int length) {
 		Set<Integer> p = new TreeSet<Integer>();
-		for (int item : pattern) {
-			p.add(item);
+		for (int i = 0; i < length; i++) {
+			p.add(pattern[i]);
 		}
 		
-		if (expected.containsKey(support)) {
-			Set<Set<Integer>> expectations = expected.get(support);
+		if (this.expected.containsKey(support)) {
+			Set<Set<Integer>> expectations = this.expected.get(support);
 			
 			if (expectations.contains(p)) {
 				expectations.remove(p);
 				if (expectations.isEmpty()) {
-					expected.remove(support);
+					this.expected.remove(support);
 				}
 				this.collected++;
 				this.collectedLength += pattern.length;
@@ -89,14 +72,30 @@ public class StubPatternsCollector implements PatternsCollector {
 		
 		throw new RuntimeException("Unexpected support/pattern : " + p.toString() + " , support=" + support);
 	}
+	public void expectCollect(Integer support, Integer... patternItems) {
+		Set<Set<Integer>> supportExpectation = null;
+		
+		if (this.expected.containsKey(support)){
+			supportExpectation = this.expected.get(support);
+		} else {
+			supportExpectation = new HashSet<Set<Integer>>();
+			this.expected.put(support, supportExpectation);
+		}
+		
+		supportExpectation.add(new TreeSet<Integer>( Arrays.asList(patternItems)));
+	}
+	
+	public boolean isEmpty() {
+		return this.expected.isEmpty();
+	}
 
 	public long close() {
 		if (!isEmpty()) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("Expected pattern(s) not found :\n");
 			
-			for (Integer support: expected.keySet()) {
-				Set<Set<Integer>> supportExpectation = expected.get(support);
+			for (Integer support: this.expected.keySet()) {
+				Set<Set<Integer>> supportExpectation = this.expected.get(support);
 				for (Set<Integer> pattern : supportExpectation) {
 					builder.append(pattern.toString());
 					builder.append(", support = ");

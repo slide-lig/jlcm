@@ -29,10 +29,15 @@ import fr.liglab.mining.internals.ExplorationStep;
 /**
  * The collector that doesn't care at all about outputting
  */
-public class NullCollector implements PatternsCollector {
+public final class NullCollector implements PatternsWriter {
 
 	protected AtomicInteger collectedCount = new AtomicInteger(0);
 	protected AtomicLong collectedLength = new AtomicLong(0);
+
+	public void collect(int support, int[] pattern, int length) {
+		this.collectedCount.incrementAndGet();
+		this.collectedLength.addAndGet(length);
+	}
 
 	@Override
 	public void collect(final ExplorationStep state) {

@@ -165,6 +165,54 @@ public class FileReaderTest {
 		patterns.expectCollect(6, 0, 1, 2);
 		return patterns;
 	}
+	
+	/**
+	 * made for minsup = 2
+	 */
+	public static final String PATH_TEST_ALL_FIS = "target/test-classes/testAllFIS.dat";
+	
+	public static StubPatternsCollector getTestAllFISPatterns() {
+		StubPatternsCollector patterns = new StubPatternsCollector();
+		patterns.expectCollect(5, 1);
+		patterns.expectCollect(4, 1, 2);
+		patterns.expectCollect(4, 2);
+		
+		patterns.expectCollect(3, 1, 2, 3, 4);
+		patterns.expectCollect(3, 1, 2, 4);
+		patterns.expectCollect(3, 1, 2, 3);
+		patterns.expectCollect(3, 1, 3, 4);
+		patterns.expectCollect(3, 1, 4);
+		patterns.expectCollect(3, 1, 3);
+		patterns.expectCollect(3, 2, 3, 4);
+		patterns.expectCollect(3, 2, 4);
+		patterns.expectCollect(3, 2, 3);
+		patterns.expectCollect(3, 3, 4);
+		patterns.expectCollect(3, 4);
+		patterns.expectCollect(3, 3);
+		
+		patterns.expectCollect(2, 1, 2, 3, 4, 5);
+		patterns.expectCollect(2, 5);
+		patterns.expectCollect(2, 5, 1);
+		patterns.expectCollect(2, 5, 1, 2);
+		patterns.expectCollect(2, 5, 2);
+		patterns.expectCollect(2, 5, 1, 2, 3, 4);
+		patterns.expectCollect(2, 5, 1, 2, 4);
+		patterns.expectCollect(2, 5, 1, 2, 3);
+		patterns.expectCollect(2, 5, 1, 3, 4);
+		patterns.expectCollect(2, 5, 1, 4);
+		patterns.expectCollect(2, 5, 1, 3);
+		patterns.expectCollect(2, 5, 2, 3, 4);
+		patterns.expectCollect(2, 5, 2, 4);
+		patterns.expectCollect(2, 5, 2, 3);
+		patterns.expectCollect(2, 5, 3, 4);
+		patterns.expectCollect(2, 5, 4);
+		patterns.expectCollect(2, 5, 3);
+		
+		return patterns;
+	}
+	
+	
+	
 
 	@Test
 	/**
