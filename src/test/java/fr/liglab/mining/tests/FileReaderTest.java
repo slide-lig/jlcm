@@ -116,43 +116,6 @@ public class FileReaderTest {
 	}
 
 	/**
-	 * made for minsup=2 In order to ease testing, each item in this file is
-	 * equal to its support count
-	 */
-	public static final String PATH_REBASING = "target/test-classes/rebasing.dat";
-
-	/**
-	 * To be wrapped in a RebaserCollector !! minsup = 2
-	 */
-	public static StubPatternsCollector getRebasingPatterns() {
-		StubPatternsCollector patterns = new StubPatternsCollector();
-		patterns.expectCollect(5, 5);
-		patterns.expectCollect(4, 4);
-		patterns.expectCollect(3, 4, 5);
-		patterns.expectCollect(3, 3, 5);
-		patterns.expectCollect(2, 2, 3, 5);
-		return patterns;
-	}
-
-	/**
-	 * made for minsup=1, k=2
-	 */
-	public static final String PATH_TEST_EXPLORE = "target/test-classes/testExplore.dat";
-
-	/**
-	 * minsup=1, k=2
-	 */
-	public static StubPatternsCollector getTestExplorePatternsK2() {
-		StubPatternsCollector patterns = new StubPatternsCollector();
-		patterns.expectCollect(8, 1);
-		patterns.expectCollect(5, 2);
-		patterns.expectCollect(3, 2, 1);
-		patterns.expectCollect(4, 3);
-		patterns.expectCollect(3, 3, 1);
-		return patterns;
-	}
-
-	/**
 	 * made for 1 < minsup < 12
 	 */
 	public static final String PATH_TEST_UNFILTERING = "target/test-classes/testUnfiltering.txt";
