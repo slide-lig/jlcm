@@ -21,11 +21,13 @@
 
 package fr.liglab.mining.io;
 
+import fr.liglab.mining.internals.ExplorationStep;
+
 /**
  * A PatternsCollector providing a more low-level method.
  * Implemented by classes that won't ever change the pattern.
  */
-public interface PatternsWriter extends PatternsCollector {
+public abstract class PatternsWriter implements PatternsCollector {
 	
 	/**
 	 * Record the sub-array pattern[0:length[
@@ -33,5 +35,9 @@ public interface PatternsWriter extends PatternsCollector {
 	 * @param pattern Pattern container
 	 * @param length should be between 1 and pattern.length
 	 */
-	public void collect(final int support, final int[] pattern, int length);
+	public abstract void collect(final int support, final int[] pattern, int length);
+	
+	public void collect(final ExplorationStep state) {
+		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
+	}
 }

@@ -21,17 +21,13 @@
 
 package fr.liglab.mining.io;
 
-import fr.liglab.mining.internals.ExplorationStep;
 
-public class StdOutCollector implements PatternsWriter {
+public class StdOutCollector extends PatternsWriter {
 
 	protected long collected = 0;
 	protected long collectedLength = 0;
-
-	synchronized public void collect(final ExplorationStep state) {
-		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
-	}
 	
+	@Override
 	synchronized public void collect(int support, int[] pattern, int length) {
 		System.out.print(Integer.toString(support) + "\t");
 		

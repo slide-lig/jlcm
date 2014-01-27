@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import fr.liglab.mining.internals.ExplorationStep;
 import fr.liglab.mining.io.PatternsWriter;
 
 /**
@@ -41,15 +40,13 @@ import fr.liglab.mining.io.PatternsWriter;
  * 
  * You should also assertTrue(thisCollector.isEmpty()) at the end 
  */
-public class StubPatternsCollector implements PatternsWriter {
+public class StubPatternsCollector extends PatternsWriter {
 	
 	protected Map<Integer, Set<Set<Integer>>> expected = new TreeMap<Integer, Set<Set<Integer>>>();
 	protected long collected = 0;
 	protected long collectedLength = 0;
-
-	public void collect(final ExplorationStep state) {
-		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
-	}
+	
+	@Override
 	public void collect(int support, int[] pattern, int length) {
 		Set<Integer> p = new TreeSet<Integer>();
 		for (int i = 0; i < length; i++) {
