@@ -54,48 +54,14 @@
           <archive>
             <manifest>
               <addClasspath>false</addClasspath>
-              <mainClass>fr.liglab.jlcm.PLCM</mainClass>
             </manifest>
           </archive>
         </configuration>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>false</addClasspath>
-              <mainClass>fr.liglab.jlcm.PLCM</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-        <executions>
-        	<execution>
-	        	<id>wdeps</id>
-	        	<goals>
-	        		<goal>assembly</goal>
-	        	</goals>
-	        	<phase>package</phase>
-	        	<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-		        </configuration>
-        	</execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
   
   <dependencies>
-    <dependency>
-	    <groupId>commons-cli</groupId>
-	    <artifactId>commons-cli</artifactId>
-	    <version>1.2</version>
-    </dependency>
   	<dependency>
   		<groupId>net.sf.trove4j</groupId>
   		<artifactId>trove4j</artifactId>

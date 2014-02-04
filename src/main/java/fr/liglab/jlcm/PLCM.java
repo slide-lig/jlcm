@@ -21,7 +21,6 @@
 
 package fr.liglab.jlcm;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,22 +29,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-
 import fr.liglab.jlcm.internals.ExplorationStep;
-import fr.liglab.jlcm.io.AllFISConverter;
-import fr.liglab.jlcm.io.MultiThreadedFileCollector;
-import fr.liglab.jlcm.io.NullCollector;
-import fr.liglab.jlcm.io.PatternSortCollector;
 import fr.liglab.jlcm.io.PatternsCollector;
-import fr.liglab.jlcm.io.PatternsWriter;
-import fr.liglab.jlcm.io.StdOutCollector;
-import fr.liglab.jlcm.util.MemoryPeakWatcherThread;
 import fr.liglab.jlcm.util.ProgressWatcherThread;
 
 /**
@@ -61,7 +46,7 @@ public class PLCM {
 	private final PatternsCollector collector;
 
 	private final long[] globalCounters;
-
+	
 	public PLCM(PatternsCollector patternsCollector, int nbThreads) {
 		if (nbThreads < 1) {
 			throw new IllegalArgumentException("nbThreads has to be > 0, given " + nbThreads);
@@ -72,24 +57,7 @@ public class PLCM {
 		this.globalCounters = new long[PLCMCounters.values().length];
 		this.progressWatch = new ProgressWatcherThread();
 	}
-
-	void createThreads(int nbThreads) {
-		for (int i = 0; i < nbThreads; i++) {
-			this.threads.add(new PLCMThread(i));
-		}
-	}
-
-	public final void collect(ExplorationStep step) {
-		this.collector.collect(step);
-	}
-
-	void initializeAndStartThreads(final ExplorationStep initState) {
-		for (PLCMThread t : this.threads) {
-			t.init(initState);
-			t.start();
-		}
-	}
-
+	
 	/**
 	 * Initial invocation
 	 */
@@ -115,6 +83,23 @@ public class PLCM {
 		}
 
 		this.progressWatch.interrupt();
+	}
+	
+	void createThreads(int nbThreads) {
+		for (int i = 0; i < nbThreads; i++) {
+			this.threads.add(new PLCMThread(i));
+		}
+	}
+
+	public final void collect(ExplorationStep step) {
+		this.collector.collect(step);
+	}
+
+	void initializeAndStartThreads(final ExplorationStep initState) {
+		for (PLCMThread t : this.threads) {
+			t.init(initState);
+			t.start();
+		}
 	}
 
 	public Map<PLCMCounters, Long> getCounters() {
@@ -272,144 +257,4 @@ public class PLCM {
 			this.lock.writeLock().unlock();
 		}
 	}
-
-	public static void main(String[] args) throws Exception {
-
-		Options options = new Options();
-		CommandLineParser parser = new PosixParser();
-		
-		options.addOption("a", false, "Output all frequent itemsets, not only closed ones");
-		options.addOption(
-				"b",
-				false,
-				"Benchmark mode : patterns are not outputted at all (in which case OUTPUT_PATH is ignored)");
-		options.addOption("h", false, "Show help");
-		options.addOption(
-				"m",
-				false,
-				"Give peak memory usage after mining (instanciates a watcher thread that periodically triggers garbage collection)");
-		options.addOption("s", false, "Sort items in outputted patterns, in ascending order");
-		options.addOption("t", true, "How many threads will be launched (defaults to your machine's processors count)");
-		options.addOption("v", false, "Enable verbose mode, which logs every extension of the empty pattern");
-		options.addOption("V", false,
-				"Enable ultra-verbose mode, which logs every pattern extension (use with care: it may produce a LOT of output)");
-
-		try {
-			CommandLine cmd = parser.parse(options, args);
-
-			if (cmd.getArgs().length < 2 || cmd.getArgs().length > 3 || cmd.hasOption('h')) {
-				printMan(options);
-			} else {
-				standalone(cmd);
-			}
-		} catch (ParseException e) {
-			printMan(options);
-		}
-	}
-
-	public static void printMan(Options options) {
-		String syntax = "java fr.liglab.mining.PLCM [OPTIONS] INPUT_PATH MINSUP [OUTPUT_PATH]";
-		String header = "\nIf OUTPUT_PATH is missing, patterns are printed to standard output.\nOptions are :";
-		String footer = "Copyright 2013,2014 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, "
-				+ "Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS";
-
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp(80, syntax, header, options, footer);
-	}
-
-	public static void standalone(CommandLine cmd) {
-		String[] args = cmd.getArgs();
-		int minsup = Integer.parseInt(args[1]);
-		MemoryPeakWatcherThread memoryWatch = null;
-
-		String outputPath = null;
-		if (args.length >= 3) {
-			outputPath = args[2];
-		}
-		
-		if (cmd.hasOption('m')) {
-			memoryWatch = new MemoryPeakWatcherThread();
-			memoryWatch.start();
-		}
-
-		chrono = System.currentTimeMillis();
-		ExplorationStep initState = new ExplorationStep(minsup, args[0]);
-		long loadingTime = System.currentTimeMillis() - chrono;
-		System.err.println("Dataset loaded in " + loadingTime + "ms");
-
-		if (cmd.hasOption('V')) {
-			ExplorationStep.verbose = true;
-			ExplorationStep.ultraVerbose = true;
-		} else if (cmd.hasOption('v')) {
-			ExplorationStep.verbose = true;
-		}
-
-		int nbThreads = Runtime.getRuntime().availableProcessors();
-		if (cmd.hasOption('t')) {
-			nbThreads = Integer.parseInt(cmd.getOptionValue('t'));
-		}
-
-		PatternsCollector collector = instanciateCollector(cmd, outputPath, nbThreads);
-
-		PLCM miner = new PLCM(collector, nbThreads);
-
-		chrono = System.currentTimeMillis();
-		miner.lcm(initState);
-		chrono = System.currentTimeMillis() - chrono;
-
-		Map<String, Long> additionalCounters = new HashMap<String, Long>();
-		additionalCounters.put("miningTime", chrono);
-		additionalCounters.put("outputtedPatterns", collector.close());
-		additionalCounters.put("loadingTime", loadingTime);
-		additionalCounters.put("avgPatternLength", (long) collector.getAveragePatternLength());
-
-		if (memoryWatch != null) {
-			memoryWatch.interrupt();
-			additionalCounters.put("maxUsedMemory", memoryWatch.getMaxUsedMemory());
-		}
-
-		System.err.println(miner.toString(additionalCounters));
-	}
-
-	/**
-	 * Parse command-line arguments to instantiate the right collector
-	 * 
-	 * @param nbThreads
-	 */
-	private static PatternsCollector instanciateCollector(CommandLine cmd, String outputPath,
-			int nbThreads) {
-
-		PatternsCollector collector = null;
-
-		if (cmd.hasOption('b')) {
-			collector = new NullCollector();
-		} else {
-			PatternsWriter writer = null;
-			
-			if (outputPath != null) {
-				try {
-					writer = new MultiThreadedFileCollector(outputPath, nbThreads);
-				} catch (IOException e) {
-					e.printStackTrace(System.err);
-					System.err.println("Aborting mining.");
-					System.exit(1);
-				}
-			} else {
-				writer = new StdOutCollector();
-			}
-			
-			collector = writer;
-			
-			if (cmd.hasOption('a')) {
-				collector = new AllFISConverter(writer);
-			}
-
-			if (cmd.hasOption('s')) {
-				collector = new PatternSortCollector(collector);
-			}
-		}
-
-		return collector;
-	}
-
 }
