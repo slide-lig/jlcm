@@ -1,7 +1,7 @@
 /*
 	This file is part of jLCM - see https://github.com/martinkirch/jlcm/
 	
-	Copyright 2013 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS
+	Copyright 2013,2014 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -310,7 +310,7 @@ public class PLCM {
 	public static void printMan(Options options) {
 		String syntax = "java fr.liglab.mining.PLCM [OPTIONS] INPUT_PATH MINSUP [OUTPUT_PATH]";
 		String header = "\nIf OUTPUT_PATH is missing, patterns are printed to standard output.\nOptions are :";
-		String footer = "Copyright 2013 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, "
+		String footer = "Copyright 2013,2014 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, "
 				+ "Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS";
 
 		HelpFormatter formatter = new HelpFormatter();
