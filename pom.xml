@@ -24,11 +24,11 @@
   
   
   <modelVersion>4.0.0</modelVersion>
-  <groupId>fr.liglab.mining</groupId>
+  <groupId>fr.liglab.jlcm</groupId>
   <artifactId>jLCM</artifactId>
   <version>1.0</version>
   <name>jLCM</name>
-  <description>A Java (multi-threaded) implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno and H.Arimura</description>
+  <description>A multi-threaded implementation of the LCM (Linear Closed itemsets Miner) algorithm proposed by T.Uno and H.Arimura</description>
   
   <properties>
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -54,7 +54,7 @@
           <archive>
             <manifest>
               <addClasspath>false</addClasspath>
-              <mainClass>fr.liglab.mining.PLCM</mainClass>
+              <mainClass>fr.liglab.jlcm.PLCM</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -68,7 +68,7 @@
           <archive>
             <manifest>
               <addClasspath>false</addClasspath>
-              <mainClass>fr.liglab.mining.PLCM</mainClass>
+              <mainClass>fr.liglab.jlcm.PLCM</mainClass>
             </manifest>
           </archive>
         </configuration>
