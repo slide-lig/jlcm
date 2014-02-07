@@ -34,7 +34,7 @@
         <h1>
 <a name="jlcm" class="anchor" href="#jlcm"><span class="octicon octicon-link"></span></a>jLCM</h1>
 
-<p>This is a Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno &amp; H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class : PLCM.</p>
+<p>A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno &amp; H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class : PLCM.</p>
 
 <p>Reference papers :</p>
 
@@ -46,12 +46,30 @@ databases" by T. Uno, T. Asai, Y. Uchida and H. Arimura, in Discovery Science,
 and optimizing memory accesses" by B. Negrevergne, A. Termier, J-F. Mehaut, 
 and T. Uno in International Conference on High Performance Computing &amp; 
 Simulation, 2010</li>
-</ul><h2>
-<a name="compiling-and-running-jlcm" class="anchor" href="#compiling-and-running-jlcm"><span class="octicon octicon-link"></span></a>Compiling and running jLCM</h2>
+</ul><p>Please use <a href="http://maven.apache.org/">Maven</a> to build the program. </p>
 
-<p>Use <a href="http://maven.apache.org/">Maven</a> to build the program. This should create <code>jLCM-1.0-jar-with-dependencies.jar</code>. Run this jar without arguments to have more details about the invocation.</p>
+<h2>
+<a name="jlcm-as-a-command-line-utility" class="anchor" href="#jlcm-as-a-command-line-utility"><span class="octicon octicon-link"></span></a>jLCM as a command-line utility</h2>
 
-<p>You may find example input files in the <a href="http://fimi.ua.ac.be/data/">FIMI repository</a>.</p>
+<p>Download <a href="https://github.com/martinkirch/jlcm-cli/raw/binary/jLCM-cli-1.0-wdeps.jar">jLCM-cli's JAR</a> and invoke <code>java -jar jLCM-cli-1.0-wdeps.jar</code> to show the complete manual. Note that this program's <code>main</code> function lives in <a href="https://github.com/martinkirch/jlcm-cli/">a separated project</a>.</p>
+
+<p>This tool uses ASCII files as input: each line represents a transaction. You may find example input files in the <a href="http://fimi.ua.ac.be/data/">FIMI repository</a>, or start with a small one embedded in <code>src/test/resources</code> like <a href="https://github.com/martinkirch/jlcm/raw/master/src/test/resources/50retail.dat">50retail.dat</a>.</p>
+
+<h2>
+<a name="jlcm-as-a-librarymaven-dependency" class="anchor" href="#jlcm-as-a-librarymaven-dependency"><span class="octicon octicon-link"></span></a>jLCM as a library/Maven dependency</h2>
+
+<p>Add the following dependency to your <code>pom.xml</code></p>
+
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;fr.liglab.jlcm&lt;/groupId&gt;
+    &lt;artifactId&gt;jLCM&lt;/artifactId&gt;
+    &lt;version&gt;1.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<p>To perform the mining you will have to instanciate an <code>ExplorationStep</code>, a <code>PatternsCollector</code> and the main class <code>PLCM</code>. Depending on how you want to do the I/O you may have to implement your own <code>Iterable&lt;TransactionReader&gt;</code> (for input) and/or <code>PatternsWriter</code> (for output).</p>
+
+<p>The <a href="https://github.com/martinkirch/jlcm-cli/blob/master/src/main/java/fr/liglab/jlcm/RunPLCM.java">main class of jLCM-cli</a> provides an example use of the library.</p>
 
 <h2>
 <a name="license-and-copyright-owners" class="anchor" href="#license-and-copyright-owners"><span class="octicon octicon-link"></span></a>License and copyright owners</h2>
@@ -71,7 +89,17 @@ Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS.<
       </footer>
     </div>
 
-    
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-47871577-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
 
   </body>
 </html>
