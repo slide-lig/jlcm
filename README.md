@@ -32,7 +32,7 @@ Add the following dependency to your `pom.xml`
 
 To perform the mining you will have to instanciate an `ExplorationStep`, a `PatternsCollector` and the main class `PLCM`. Depending on how you want to do the I/O you may have to implement your own `Iterable<TransactionReader>` (for input) and/or `PatternsWriter` (for output).
 
-The [main class of the jLCM-cli](https://github.com/martinkirch/jlcm-cli/blob/master/src/main/java/fr/liglab/jlcm/RunPLCM.java) provides an example use of the library.
+The [main class of jLCM-cli](https://github.com/martinkirch/jlcm-cli/blob/master/src/main/java/fr/liglab/jlcm/RunPLCM.java) provides an example use of the library.
 
 
 ## License and copyright owners
