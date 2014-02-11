@@ -1,8 +1,8 @@
 # jLCM
 
-A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno & H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class : PLCM.
+A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno & H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class: PLCM.
 
-Reference papers :
+Reference papers:
 
 * "An efficient algorithm for enumerating closed patterns in transaction 
 databases" by T. Uno, T. Asai, Y. Uchida and H. Arimura, in Discovery Science, 
