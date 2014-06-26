@@ -232,7 +232,7 @@ public final class ExplorationStep implements Cloneable {
 
 		try {
 			Dataset instance = new Dataset(this.counters, filtered, Integer.MAX_VALUE);
-			instance.compress(this.core_item);
+			instance.compress(this.counters.maxCandidate);
 			return instance;
 			
 		} catch (ArrayIndexOutOfBoundsException e) {
