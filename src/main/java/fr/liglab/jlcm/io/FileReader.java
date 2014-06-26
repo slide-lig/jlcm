@@ -84,8 +84,13 @@ public final class FileReader implements Iterator<TransactionReader> {
 	
 	private void writeNewTransactionToNextPage() {
 		if (currentTransLen+1 >= COPY_PAGES_SIZE) {
-			throw new RuntimeException("Inputted transactions are too long ! Try increasing " +
-					"FileReader.COPY_PAGES_SIZE");
+			if (currentTransIdx == 0) {
+				throw new RuntimeException("Out of buffer bounds - please check the input file "
+						+ "format: only LF line terminators are expected, even at EOF.");
+			} else {
+				throw new RuntimeException("Inputted transactions are too long ! Try increasing " +
+						"FileReader.COPY_PAGES_SIZE");
+			}
 		}
 		
 		int[] previousPage = currentPage;
