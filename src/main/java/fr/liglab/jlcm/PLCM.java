@@ -184,7 +184,7 @@ public class PLCM {
 	 * to PLCMCounters.counters
 	 */
 	public enum PLCMCounters {
-		ExplorationStepInstances, ExplorationStepCatchedWrongFirstParents, FirstParentTestRejections, TransactionsCompressions
+		ExplorationStepInstances, ExplorationStepCaughtWrongFirstParents, FirstParentTestRejections, TransactionsCompressions
 	}
 
 	public class PLCMThread extends Thread {
@@ -229,8 +229,8 @@ public class PLCM {
 
 						this.stackedJobs.remove(this.stackedJobs.size() - 1);
 						this.counters[PLCMCounters.ExplorationStepInstances.ordinal()]++;
-						this.counters[PLCMCounters.ExplorationStepCatchedWrongFirstParents.ordinal()] += sj
-								.getCatchedWrongFirstParentCount();
+						this.counters[PLCMCounters.ExplorationStepCaughtWrongFirstParents.ordinal()] += sj
+								.getCaughtWrongFirstParentCount();
 
 						this.lock.writeLock().unlock();
 					} else {

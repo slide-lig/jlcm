@@ -264,7 +264,7 @@ public final class ExplorationStep implements Cloneable {
 		}
 	}
 
-	public int getCatchedWrongFirstParentCount() {
+	public int getCaughtWrongFirstParentCount() {
 		if (this.failedFPTests == null) {
 			return 0;
 		}
