@@ -48,6 +48,10 @@ public class PLCM {
 	private final long[] globalCounters;
 	
 	public PLCM(PatternsCollector patternsCollector, int nbThreads) {
+		this(patternsCollector, nbThreads, null);
+	}
+	
+	public PLCM(PatternsCollector patternsCollector, int nbThreads, ProgressWatcherThread watch) {
 		if (nbThreads < 1) {
 			throw new IllegalArgumentException("nbThreads has to be > 0, given " + nbThreads);
 		}
@@ -55,7 +59,7 @@ public class PLCM {
 		this.threads = new ArrayList<PLCMThread>(nbThreads);
 		this.createThreads(nbThreads);
 		this.globalCounters = new long[PLCMCounters.values().length];
-		this.progressWatch = new ProgressWatcherThread();
+		this.progressWatch = watch;
 	}
 	
 	/**
