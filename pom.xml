@@ -30,7 +30,7 @@
   <groupId>fr.liglab.jlcm</groupId>
   <artifactId>jLCM</artifactId>
   
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <name>jLCM</name>
   <description>A multi-threaded implementation of the LCM (Linear Closed itemsets Miner) algorithm proposed by T.Uno and H.Arimura</description>
 
