@@ -72,9 +72,11 @@ public class PLCM {
 
 		this.initializeAndStartThreads(initState);
 
-		this.progressWatch.setInitState(initState);
-		this.progressWatch.start();
-
+		if (this.progressWatch != null) {
+			this.progressWatch.setInitState(initState);
+			this.progressWatch.start();
+		}
+		
 		for (PLCMThread t : this.threads) {
 			try {
 				t.join();
@@ -85,8 +87,10 @@ public class PLCM {
 				throw new RuntimeException(e);
 			}
 		}
-
-		this.progressWatch.interrupt();
+		
+		if (this.progressWatch != null) {
+			this.progressWatch.interrupt();
+		}
 	}
 	
 	void createThreads(int nbThreads) {
