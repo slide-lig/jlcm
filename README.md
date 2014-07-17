@@ -18,7 +18,7 @@ Please use [Maven](http://maven.apache.org/) to build the program.
 
 Download [jLCM-cli's JAR](https://github.com/martinkirch/jlcm-cli/raw/binary/jLCM-cli-1.2-wdeps.jar) and invoke `java -jar jLCM-cli-1.2-wdeps.jar` to show the complete manual. Note that this program's `main` function lives in [a separated project](https://github.com/martinkirch/jlcm-cli/).
 
-This tool uses ASCII files as input: each line represents a transaction. You may find example input files in the [FIMI repository](http://fimi.ua.ac.be/data/), or start with a small one embedded in `src/test/resources` like [50retail.dat](https://github.com/martinkirch/jlcm/raw/master/src/test/resources/50retail.dat).
+This tool uses ASCII files as input: each line represents a transaction (using UNIX line terminators). You may find example input files in the [FIMI repository](http://fimi.ua.ac.be/data/), or start with a small one embedded in `src/test/resources` like [50retail.dat](https://github.com/martinkirch/jlcm/raw/master/src/test/resources/50retail.dat).
 
 ## jLCM as a library/Maven dependency
 
