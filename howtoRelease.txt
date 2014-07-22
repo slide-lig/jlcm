@@ -1,0 +1,11 @@
+-- setup ~/.m2/settings.xml
+http://books.sonatype.com/nexus-book/reference/staging-sect-deployment.html#ex-staging-deployment-credentials
+
+-- check version in pom.xml
+
+git tag jLCM-X.Y
+git push --tags
+
+mvn clean deploy -Dgpg.passphrase=****
+
+

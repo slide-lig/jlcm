@@ -104,7 +104,7 @@ public final class ExplorationStep implements Cloneable {
 		this.selectChain = null;
 		this.counters = new Counters(minimumSupport, source.iterator());
 		this.pattern = this.counters.closure;
-		TransactionsRenamingDecorator filtered = new TransactionsRenamingDecorator(source.iterator(), this.counters.renaming);
+		TransactionsRenameAndSortDecorator filtered = new TransactionsRenameAndSortDecorator(source.iterator(), this.counters.renaming);
 		this.dataset = new Dataset(this.counters, filtered);
 		this.candidates = this.counters.getExtensionsIterator();
 		this.failedFPTests = new TIntIntHashMap();
