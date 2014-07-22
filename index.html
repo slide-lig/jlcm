@@ -51,9 +51,9 @@ Simulation, 2010</li>
 <h2>
 <a name="jlcm-as-a-command-line-utility" class="anchor" href="#jlcm-as-a-command-line-utility"><span class="octicon octicon-link"></span></a>jLCM as a command-line utility</h2>
 
-<p>Download <a href="https://github.com/martinkirch/jlcm-cli/raw/binary/jLCM-cli-1.3-wdeps.jar">jLCM-cli's JAR</a> and invoke <code>java -jar jLCM-cli-1.3-wdeps.jar</code> to show the complete manual. Note that this program's <code>main</code> function lives in <a href="https://github.com/martinkirch/jlcm-cli/">a separated project</a>.</p>
+<p>Download <a href="https://github.com/slide-lig/jlcm-cli/raw/binary/jLCM-cli-1.3-wdeps.jar">jLCM-cli's JAR</a> and invoke <code>java -jar jLCM-cli-1.3-wdeps.jar</code> to show the complete manual. Note that this program's <code>main</code> function lives in <a href="https://github.com/slide-lig/jlcm-cli/">a separated project</a>.</p>
 
-<p>This tool uses ASCII files as input: each line represents a transaction (using UNIX line terminators). You may find example input files in the <a href="http://fimi.ua.ac.be/data/">FIMI repository</a>, or start with a small one embedded in <code>src/test/resources</code> like <a href="https://github.com/martinkirch/jlcm/raw/master/src/test/resources/50retail.dat">50retail.dat</a>.</p>
+<p>This tool uses ASCII files as input: each line represents a transaction (using UNIX line terminators). You may find example input files in the <a href="http://fimi.ua.ac.be/data/">FIMI repository</a>, or start with a small one embedded in <code>src/test/resources</code> like <a href="https://github.com/slide-lig/jlcm/raw/master/src/test/resources/50retail.dat">50retail.dat</a>.</p>
 
 <h2>
 <a name="jlcm-as-a-librarymaven-dependency" class="anchor" href="#jlcm-as-a-librarymaven-dependency"><span class="octicon octicon-link"></span></a>jLCM as a library/Maven dependency</h2>
@@ -69,7 +69,7 @@ Simulation, 2010</li>
 
 <p>To perform the mining you will have to instanciate an <code>ExplorationStep</code>, a <code>PatternsCollector</code> and the main class <code>PLCM</code>. Depending on how you want to do the I/O you may have to implement your own <code>Iterable&lt;TransactionReader&gt;</code> (for input) and/or <code>PatternsWriter</code> (for output).</p>
 
-<p>The <a href="https://github.com/martinkirch/jlcm-cli/blob/master/src/main/java/fr/liglab/jlcm/RunPLCM.java">main class of jLCM-cli</a> provides an example use of the library.</p>
+<p>The <a href="https://github.com/slide-lig/jlcm-cli/blob/master/src/main/java/fr/liglab/jlcm/RunPLCM.java">main class of jLCM-cli</a> provides an example use of the library.</p>
 
 <h2>
 <a name="license-and-copyright-owners" class="anchor" href="#license-and-copyright-owners"><span class="octicon octicon-link"></span></a>License and copyright owners</h2>
