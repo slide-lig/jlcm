@@ -16,8 +16,7 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.io;
 
@@ -29,42 +28,44 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
-
 /**
- * a thread-unsafe PatternsCollector that write to the path provided at instanciation
+ * a thread-unsafe PatternsCollector that write to the path provided at
+ * instanciation
+ * 
  * @see MultiThreadedFileCollector
  */
 public class FileCollector extends PatternsWriter {
-	
+
 	// this should be profiled and tuned !
 	protected static final int BUFFER_CAPACITY = 4096;
-	
+
 	protected long collected = 0;
 	protected long collectedLength = 0;
 	protected FileOutputStream stream;
 	protected FileChannel channel;
 	protected ByteBuffer buffer;
 	protected static final Charset charset = Charset.forName("ASCII");
-	
+
 	public FileCollector(final String path) throws IOException {
 		File file = new File(path);
-		
+
 		if (file.exists()) {
-			System.err.println("Warning : overwriting output file "+path);
+			System.err.println("Warning : overwriting output file " + path);
 		}
-		
+
 		this.stream = new FileOutputStream(file, false);
 		this.channel = this.stream.getChannel();
-		
+
 		this.buffer = ByteBuffer.allocateDirect(BUFFER_CAPACITY);
 		this.buffer.clear();
 	}
 
 	@Override
-	public void collect(int support, int[] pattern, int length) {
+	public void collect(int support, int[] pattern, int length, int[] originalTransIds) {
 		putInt(support);
-		safePut((byte) '\t'); // putChar('\t') would append TWO bytes, but in ASCII we need only one
-		
+		safePut((byte) '\t'); // putChar('\t') would append TWO bytes, but in
+								// ASCII we need only one
+
 		boolean addSeparator = false;
 		for (int i = 0; i < length; i++) {
 			if (addSeparator) {
@@ -72,15 +73,28 @@ public class FileCollector extends PatternsWriter {
 			} else {
 				addSeparator = true;
 			}
-			
+
 			putInt(pattern[i]);
 		}
-		
+
+		safePut((byte) '\t');
+
+		addSeparator = false;
+		for (int i = 0; i < originalTransIds.length; i++) {
+			if (addSeparator) {
+				safePut((byte) ' ');
+			} else {
+				addSeparator = true;
+			}
+
+			putInt(originalTransIds[i]);
+		}
+
 		safePut((byte) '\n');
 		this.collected++;
 		this.collectedLength += pattern.length;
 	}
-	
+
 	protected void putInt(final int i) {
 		try {
 			byte[] asBytes = Integer.toString(i).getBytes(charset);
@@ -90,7 +104,7 @@ public class FileCollector extends PatternsWriter {
 			putInt(i);
 		}
 	}
-	
+
 	protected void safePut(final byte b) {
 		try {
 			this.buffer.put(b);
@@ -99,7 +113,7 @@ public class FileCollector extends PatternsWriter {
 			safePut(b);
 		}
 	}
-	
+
 	protected void flush() {
 		try {
 			this.buffer.flip();
@@ -118,7 +132,7 @@ public class FileCollector extends PatternsWriter {
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
 		}
-		
+
 		return this.collected;
 	}
 
@@ -129,14 +143,14 @@ public class FileCollector extends PatternsWriter {
 			return (int) (this.collectedLength / this.collected);
 		}
 	}
-	
+
 	/**
 	 * @return how many patterns have been written so far
 	 */
 	public long getCollected() {
 		return this.collected;
 	}
-	
+
 	/**
 	 * @return sum of collected patterns' lengths
 	 */

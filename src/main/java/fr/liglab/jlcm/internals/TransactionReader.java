@@ -16,13 +16,22 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.internals;
 
+import gnu.trove.list.array.TIntArrayList;
+
+import org.omg.CORBA.IntHolder;
+
 public interface TransactionReader {
 	public int getTransactionSupport();
+
+	public TIntArrayList getTransactionOriginalId();
+
+	public TIntArrayList getTransactionOriginalId(IntHolder h);
+
 	public int next();
+
 	public boolean hasNext();
 }

@@ -16,28 +16,32 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.io;
 
 import fr.liglab.jlcm.internals.ExplorationStep;
 
 /**
- * A PatternsCollector providing a more low-level method.
- * Implemented by classes that won't ever change the pattern.
+ * A PatternsCollector providing a more low-level method. Implemented by classes
+ * that won't ever change the pattern.
  */
 public abstract class PatternsWriter implements PatternsCollector {
-	
+
 	/**
 	 * Record the sub-array pattern[0:length[
-	 * @param support Pattern's support count
-	 * @param pattern Pattern container
-	 * @param length should be between 1 and pattern.length
+	 * 
+	 * @param support
+	 *            Pattern's support count
+	 * @param pattern
+	 *            Pattern container
+	 * @param length
+	 *            should be between 1 and pattern.length
 	 */
-	public abstract void collect(final int support, final int[] pattern, int length);
-	
+	public abstract void collect(final int support, final int[] pattern, int length, int[] originalTransIds);
+
 	public void collect(final ExplorationStep state) {
-		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length);
+		this.collect(state.counters.transactionsCount, state.pattern, state.pattern.length,
+				state.getOriginalSupportIds());
 	}
 }

@@ -16,8 +16,7 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.internals;
 
@@ -38,17 +37,17 @@ public final class ExplorationStep implements Cloneable {
 
 	public static boolean verbose = false;
 	public static boolean ultraVerbose = false;
-	
+
 	public final ExplorationStep parent;
-	
+
 	/**
 	 * closure of parent's pattern UNION extension
 	 */
 	public final int[] pattern;
 
 	/**
-	 * Extension item that led to this recursion step (internal ID) 
-	 * Already included in "pattern".
+	 * Extension item that led to this recursion step (internal ID) Already
+	 * included in "pattern".
 	 */
 	public final int core_item;
 
@@ -94,7 +93,7 @@ public final class ExplorationStep implements Cloneable {
 
 		this.failedFPTests = new TIntIntHashMap();
 	}
-	
+
 	/**
 	 * Start exploration on an abstract dataset
 	 */
@@ -104,14 +103,15 @@ public final class ExplorationStep implements Cloneable {
 		this.selectChain = null;
 		this.counters = new Counters(minimumSupport, source.iterator());
 		this.pattern = this.counters.closure;
-		TransactionsRenameAndSortDecorator filtered = new TransactionsRenameAndSortDecorator(source.iterator(), this.counters.renaming);
+		TransactionsRenameAndSortDecorator filtered = new TransactionsRenameAndSortDecorator(source.iterator(),
+				this.counters.renaming);
 		this.dataset = new Dataset(this.counters, filtered);
 		this.candidates = this.counters.getExtensionsIterator();
 		this.failedFPTests = new TIntIntHashMap();
 	}
 
-	private ExplorationStep(ExplorationStep parent, int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
-			ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {
+	private ExplorationStep(ExplorationStep parent, int[] pattern, int core_item, Dataset dataset, Counters counters,
+			Selector selectChain, ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {
 		super();
 		this.parent = parent;
 		this.pattern = pattern;
@@ -149,8 +149,8 @@ public final class ExplorationStep implements Cloneable {
 					// " with "+
 					// candidate+" ("+this.counters.getReverseRenaming()[candidate]+")");
 
-					Counters candidateCounts = new Counters(this.counters.minSupport, support.iterator(),
-							candidate, this.counters.maxFrequent);
+					Counters candidateCounts = new Counters(this.counters.minSupport, support.iterator(), candidate,
+							this.counters.maxFrequent);
 
 					int greatest = Integer.MIN_VALUE;
 					for (int i = 0; i < candidateCounts.closure.length; i++) {
@@ -219,7 +219,7 @@ public final class ExplorationStep implements Cloneable {
 			} else {
 				this.selectChain = parent.selectChain.copy();
 			}
-			
+
 			this.dataset = instanciateDataset(parent.counters, support);
 			this.candidates = this.counters.getExtensionsIterator();
 		}
@@ -235,7 +235,7 @@ public final class ExplorationStep implements Cloneable {
 			Dataset instance = new Dataset(this.counters, filtered, Integer.MAX_VALUE);
 			instance.compress(this.counters.maxCandidate);
 			return instance;
-			
+
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("WAT core_item = " + this.core_item);
 			e.printStackTrace();
@@ -249,6 +249,10 @@ public final class ExplorationStep implements Cloneable {
 		synchronized (this.failedFPTests) {
 			return this.failedFPTests.get(item);
 		}
+	}
+
+	public int[] getOriginalSupportIds() {
+		return this.counters.originalTidList;
 	}
 
 	private void addFailedFPTest(final int item, final int firstParent) {
@@ -273,7 +277,8 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	public ExplorationStep copy() {
-		return new ExplorationStep(parent, pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates, failedFPTests);
+		return new ExplorationStep(parent, pattern, core_item, dataset.clone(), counters.clone(), selectChain,
+				candidates, failedFPTests);
 	}
 
 	public Progress getProgression() {
@@ -289,4 +294,5 @@ public final class ExplorationStep implements Cloneable {
 			this.last = candidates.last();
 		}
 	}
+
 }

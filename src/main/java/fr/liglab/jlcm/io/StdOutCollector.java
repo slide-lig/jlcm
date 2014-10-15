@@ -16,21 +16,19 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.io;
-
 
 public class StdOutCollector extends PatternsWriter {
 
 	protected long collected = 0;
 	protected long collectedLength = 0;
-	
+
 	@Override
-	synchronized public void collect(int support, int[] pattern, int length) {
+	synchronized public void collect(int support, int[] pattern, int length, int[] originalTransIds) {
 		System.out.print(Integer.toString(support) + "\t");
-		
+
 		boolean addSeparator = false;
 		for (int i = 0; i < length; i++) {
 			if (addSeparator) {
@@ -38,14 +36,24 @@ public class StdOutCollector extends PatternsWriter {
 			} else {
 				addSeparator = true;
 			}
-			
+
 			System.out.print(pattern[i]);
 		}
+
+		System.out.print("\t");
+
+		addSeparator = false;
+		for (int i = 0; i < originalTransIds.length; i++) {
+			if (addSeparator) {
+				System.out.print(' ');
+			} else {
+				addSeparator = true;
+			}
+
+			System.out.print(originalTransIds[i]);
+		}
 		
-		System.out.println("");
-		
-		this.collected++;
-		this.collectedLength += pattern.length;
+		System.out.println();
 	}
 
 	public long close() {

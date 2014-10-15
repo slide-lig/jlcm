@@ -16,8 +16,7 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.internals;
 
@@ -26,9 +25,12 @@ import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.omg.CORBA.IntHolder;
+
 import fr.liglab.jlcm.util.ItemAndSupport;
 import fr.liglab.jlcm.util.ItemsetsFactory;
 import gnu.trove.iterator.TIntIntIterator;
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 
 /**
@@ -105,18 +107,21 @@ public final class Counters implements Cloneable {
 	protected int maxFrequent;
 
 	/**
-	 * This array allows another class to output the discovered closure using original items' IDs.
+	 * This array allows another class to output the discovered closure using
+	 * original items' IDs.
 	 * 
-	 * After instanciation this field *must* be set by one of these methods
-	 * - reuseRenaming, the initial dataset's constructor (which also sets "renaming")
-	 * - compressRenaming, useful when recompacting dataset in recursions
+	 * After instanciation this field *must* be set by one of these methods -
+	 * reuseRenaming, the initial dataset's constructor (which also sets
+	 * "renaming") - compressRenaming, useful when recompacting dataset in
+	 * recursions
 	 */
 	protected int[] reverseRenaming;
 
 	/**
 	 * This field will be null EXCEPT if you're using the initial dataset's
 	 * constructor (in which case it computes its absolute renaming by the way)
-	 * OR if you called compressRenaming (in which case getRenaming will give back the same value)
+	 * OR if you called compressRenaming (in which case getRenaming will give
+	 * back the same value)
 	 * 
 	 * It gives, for each original item ID, its new identifier. If it's negative
 	 * it means the item should be filtered.
@@ -133,6 +138,8 @@ public final class Counters implements Cloneable {
 	 * Exclusive index of the first item >= core_item in current base
 	 */
 	protected int maxCandidate;
+
+	protected final int[] originalTidList;
 
 	/**
 	 * Does item counting over a projected dataset
@@ -158,11 +165,21 @@ public final class Counters implements Cloneable {
 		int weightsSum = 0;
 		int transactionsCount = 0;
 
+		TIntArrayList originalTransIds = new TIntArrayList();
+		IntHolder originalId = new IntHolder();
+
 		while (transactions.hasNext()) {
 			TransactionReader transaction = transactions.next();
 			int weight = transaction.getTransactionSupport();
 
 			if (weight > 0) {
+				final TIntArrayList originalIds = transaction.getTransactionOriginalId(originalId);
+				if (originalIds == null) {
+					originalTransIds.add(originalId.value);
+				} else {
+					originalTransIds.addAll(originalIds);
+				}
+
 				if (transaction.hasNext()) {
 					weightsSum += weight;
 					transactionsCount++;
@@ -177,6 +194,8 @@ public final class Counters implements Cloneable {
 				}
 			}
 		}
+
+		this.originalTidList = originalTransIds.toArray();
 
 		this.transactionsCount = weightsSum;
 		this.distinctTransactionsCount = transactionsCount;
@@ -208,7 +227,7 @@ public final class Counters implements Cloneable {
 				remainingDistinctTransLengths += this.distinctTransactionsCounts[i];
 			}
 		}
-		
+
 		this.closure = closureBuilder.get();
 		this.distinctTransactionLengthSum = remainingDistinctTransLengths;
 		this.nbFrequents = remainingFrequents;
@@ -237,9 +256,20 @@ public final class Counters implements Cloneable {
 		// item support and transactions counting
 
 		int transactionsCounter = 0;
+
+		TIntArrayList originalTransIds = new TIntArrayList();
+		IntHolder originalId = new IntHolder();
+
 		while (transactions.hasNext()) {
 			TransactionReader transaction = transactions.next();
 			transactionsCounter++;
+
+			final TIntArrayList originalIds = transaction.getTransactionOriginalId(originalId);
+			if (originalIds == null) {
+				originalTransIds.add(originalId.value);
+			} else {
+				originalTransIds.addAll(originalIds);
+			}
 
 			while (transaction.hasNext()) {
 				int item = transaction.next();
@@ -247,6 +277,8 @@ public final class Counters implements Cloneable {
 				supportsMap.adjustOrPutValue(item, 1, 1);
 			}
 		}
+
+		this.originalTidList = originalTransIds.toArray();
 
 		this.transactionsCount = transactionsCounter;
 		this.distinctTransactionsCount = transactionsCounter;
@@ -307,9 +339,9 @@ public final class Counters implements Cloneable {
 	}
 
 	private Counters(int minSupport, int transactionsCount, int distinctTransactionsCount,
-			int distinctTransactionLengthSum, int[] supportCounts,
-			int[] distinctTransactionsCounts, int[] closure, int nbFrequents, int maxFrequent, int[] reverseRenaming,
-			int[] renaming, boolean compactedArrays, int maxCandidate) {
+			int distinctTransactionLengthSum, int[] supportCounts, int[] distinctTransactionsCounts, int[] closure,
+			int nbFrequents, int maxFrequent, int[] reverseRenaming, int[] renaming, boolean compactedArrays,
+			int maxCandidate, int[] originalTidList) {
 		super();
 		this.minSupport = minSupport;
 		this.transactionsCount = transactionsCount;
@@ -324,18 +356,19 @@ public final class Counters implements Cloneable {
 		this.renaming = renaming;
 		this.compactedArrays = compactedArrays;
 		this.maxCandidate = maxCandidate;
+		this.originalTidList = originalTidList;
 	}
 
 	@Override
 	protected Counters clone() {
 		return new Counters(minSupport, transactionsCount, distinctTransactionsCount, distinctTransactionLengthSum,
-				Arrays.copyOf(supportCounts, supportCounts.length), Arrays.copyOf(
-						distinctTransactionsCounts, distinctTransactionsCounts.length), Arrays.copyOf(closure,
-						closure.length), nbFrequents, maxFrequent, Arrays.copyOf(reverseRenaming,
-						reverseRenaming.length), Arrays.copyOf(renaming, renaming.length), compactedArrays,
-				maxCandidate);
+				Arrays.copyOf(supportCounts, supportCounts.length), Arrays.copyOf(distinctTransactionsCounts,
+						distinctTransactionsCounts.length), Arrays.copyOf(closure, closure.length), nbFrequents,
+				maxFrequent, Arrays.copyOf(reverseRenaming, reverseRenaming.length), Arrays.copyOf(renaming,
+						renaming.length), compactedArrays, maxCandidate, Arrays.copyOf(originalTidList,
+						originalTidList.length));
 	}
-	
+
 	/**
 	 * @return greatest frequent item's ID, which is also the greatest valid
 	 *         index for arrays supportCounts and distinctTransactionsCounts
@@ -350,9 +383,10 @@ public final class Counters implements Cloneable {
 	public int[] getRenaming() {
 		return this.renaming;
 	}
-	
+
 	/**
-	 * @return a translation from internal item indexes to dataset's original indexes
+	 * @return a translation from internal item indexes to dataset's original
+	 *         indexes
 	 */
 	public int[] getReverseRenaming() {
 		return this.reverseRenaming;
@@ -404,7 +438,7 @@ public final class Counters implements Cloneable {
 		this.compactedArrays = true;
 
 		this.renaming = renaming;
-		
+
 		return renaming;
 	}
 

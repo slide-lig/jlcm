@@ -16,18 +16,20 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.internals;
 
 import java.util.Iterator;
 
+import org.omg.CORBA.IntHolder;
+
 import fr.liglab.jlcm.internals.TransactionReader;
+import gnu.trove.list.array.TIntArrayList;
 
 /**
- * Decorates a transactions iterator : transactions are filtered (and, maybe, rebased) 
- * as they're read.
+ * Decorates a transactions iterator : transactions are filtered (and, maybe,
+ * rebased) as they're read.
  */
 class TransactionsRenamingDecorator implements Iterator<TransactionReader> {
 
@@ -37,7 +39,8 @@ class TransactionsRenamingDecorator implements Iterator<TransactionReader> {
 
 	/**
 	 * @param filtered
-	 * @param rebasing items having -1 as a value will be filtered
+	 * @param rebasing
+	 *            items having -1 as a value will be filtered
 	 */
 	public TransactionsRenamingDecorator(Iterator<TransactionReader> filtered, int[] rebasing) {
 		this.wrapped = filtered;
@@ -86,13 +89,23 @@ class TransactionsRenamingDecorator implements Iterator<TransactionReader> {
 		protected void findNext() {
 			while (this.wrapped.hasNext()) {
 				this.next = rebasing[this.wrapped.next()];
-				if (this.next != -1 ) {
+				if (this.next != -1) {
 					this.hasNext = true;
 					return;
 				}
 			}
 
 			this.hasNext = false;
+		}
+
+		@Override
+		public TIntArrayList getTransactionOriginalId() {
+			return this.wrapped.getTransactionOriginalId();
+		}
+
+		@Override
+		public TIntArrayList getTransactionOriginalId(IntHolder h) {
+			return this.wrapped.getTransactionOriginalId(h);
 		}
 
 		@Override

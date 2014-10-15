@@ -16,16 +16,21 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.internals.transactions;
 
 import fr.liglab.jlcm.internals.Counters;
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TObjectProcedure;
 
 import java.util.Arrays;
 import java.util.Iterator;
+
+import org.omg.CORBA.IntHolder;
 
 /**
  * Stores transactions. Items in transactions are assumed to be sorted in
@@ -37,7 +42,9 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 	private int size = 0;
 	private int transId = -1;
 	int writeIndex = 0;
-	
+	private int[] originalTransactionIds;
+	private TIntObjectMap<TIntArrayList> multipleTransactionIds;
+
 	public TransactionsList(Counters c) {
 		this(c.distinctTransactionsCount);
 	}
@@ -45,10 +52,32 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 	public TransactionsList(int nbTransactions) {
 		this.indexAndFreqs = new int[nbTransactions << 1];
 		Arrays.fill(this.indexAndFreqs, -1);
+		this.originalTransactionIds = new int[nbTransactions];
+		Arrays.fill(this.originalTransactionIds, -1);
 	}
-	
+
+	public TIntArrayList getOriginalId(int transId) {
+		if (this.originalTransactionIds[transId] >= 0) {
+			TIntArrayList a = new TIntArrayList(0);
+			a.add(this.originalTransactionIds[transId]);
+			return a;
+		} else {
+			return this.multipleTransactionIds.get(transId);
+		}
+	}
+
+	public TIntArrayList getOriginalId(int transId, IntHolder h) {
+		if (this.originalTransactionIds[transId] >= 0) {
+			h.value = this.originalTransactionIds[transId];
+			return null;
+		} else {
+			return this.multipleTransactionIds.get(transId);
+		}
+	}
+
 	@Override
 	public TransactionsList clone() {
+		// TODO update clone with new fields
 		try {
 			TransactionsList o = (TransactionsList) super.clone();
 			o.indexAndFreqs = Arrays.copyOf(this.indexAndFreqs, this.indexAndFreqs.length);
@@ -65,14 +94,30 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 	final public int size() {
 		return this.size;
 	}
-	
+
 	final public void startWriting() {
 		this.transId = -1;
 	}
 
 	public abstract void addItem(int item);
-	
-	public int beginTransaction(int support) {
+
+	public int beginTransaction(int support, int originalTransactionId) {
+		int newId = this.beginTransaction(support);
+		this.originalTransactionIds[newId] = originalTransactionId;
+		return newId;
+	}
+
+	public int beginTransaction(int support, TIntArrayList originalTransactionIds) {
+		int newId = this.beginTransaction(support);
+		this.originalTransactionIds[newId] = -1;
+		if (this.multipleTransactionIds == null) {
+			this.multipleTransactionIds = new TIntObjectHashMap<TIntArrayList>();
+		}
+		this.multipleTransactionIds.put(newId, new TIntArrayList(originalTransactionIds));
+		return newId;
+	}
+
+	private int beginTransaction(int support) {
 		this.transId++;
 		int startPos = this.transId << 1;
 		this.indexAndFreqs[startPos] = TransactionsList.this.writeIndex;
@@ -82,7 +127,7 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		}
 		return this.transId;
 	}
-	
+
 	final int getTransSupport(int trans) {
 		int startPos = trans << 1;
 		return this.indexAndFreqs[startPos + 1];
@@ -97,18 +142,18 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		}
 		this.indexAndFreqs[startPos + 1] = s;
 	}
-	
+
 	@Override
 	public Iterator<IterableTransaction> iterator() {
 		return new Iter();
 	}
-	
-	abstract public TransactionIterator getIterator();
-	
+
+	abstract public IndexedReusableIterator getIterator();
+
 	final public TIntIterator getIdIterator() {
 		return new IdIter();
 	}
-	
+
 	final void positionIterator(int transaction, IndexedReusableIterator iter) {
 		int startPos = transaction << 1;
 		if (startPos >= this.indexAndFreqs.length || this.indexAndFreqs[startPos] == -1) {
@@ -147,7 +192,7 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 			this.findNext();
 			final int p = this.pos;
 			return new IterableTransaction() {
-				private IndexedReusableIterator iter = (IndexedReusableIterator) getIterator();
+				private IndexedReusableIterator iter = getIterator();
 
 				@Override
 				public TransactionIterator iterator() {
@@ -177,7 +222,6 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		}
 	}
 
-	
 	final private class IdIter implements TIntIterator {
 		private int pos;
 		private int nextPos = -1;
@@ -217,15 +261,15 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 			return this.nextPos != -1;
 		}
 	}
-	
-	
+
 	public void compress(final int prefixEnd) {
 		int[] sortList = new int[this.size()];
 		TIntIterator idIter = this.getIdIterator();
 		for (int i = 0; i < sortList.length; i++) {
 			sortList[i] = idIter.next();
 		}
-		sort(sortList, 0, sortList.length, this.getIterator(), this.getIterator(), prefixEnd);
+		this.sort(sortList, 0, sortList.length, this.getIterator(), this.getIterator(), prefixEnd);
+		this.trimAllOriginalTransIdsLists();
 	}
 
 	/**
@@ -241,8 +285,8 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 	 * @param it2
 	 * @param prefixEnd
 	 */
-	private static void sort(final int[] array, final int start, final int end, final TransactionIterator it1,
-			final TransactionIterator it2, int prefixEnd) {
+	private void sort(final int[] array, final int start, final int end, final IndexedReusableIterator it1,
+			final IndexedReusableIterator it2, int prefixEnd) {
 		if (start >= end - 1) {
 			// size 0 or 1
 			return;
@@ -284,11 +328,12 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		}
 	}
 
-	static private int merge(TransactionIterator t1, TransactionIterator t2, final int prefixEnd) {
+	// only use with iterators from the same TransactionList (because of
+	// original transaction ids merge)
+	private int merge(IndexedReusableIterator t1, IndexedReusableIterator t2, final int prefixEnd) {
 		if (!t1.hasNext()) {
 			if (!t2.hasNext() || t2.next() > prefixEnd) {
-				t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-				t2.setTransactionSupport(0);
+				doMerge(t1, t2);
 				return 0;
 			} else {
 				return -1;
@@ -299,8 +344,7 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 				while (t1.hasNext()) {
 					t1.remove();
 				}
-				t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-				t2.setTransactionSupport(0);
+				doMerge(t1, t2);
 				return 0;
 			} else {
 				return 1;
@@ -328,8 +372,7 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 										t1Item = t1.next();
 										t1.remove();
 									}
-									t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-									t2.setTransactionSupport(0);
+									doMerge(t1, t2);
 									return 0;
 								}
 							}
@@ -339,13 +382,11 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 								if (t2Item < prefixEnd) {
 									return -1;
 								} else {
-									t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-									t2.setTransactionSupport(0);
+									doMerge(t1, t2);
 									return 0;
 								}
 							} else {
-								t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-								t2.setTransactionSupport(0);
+								doMerge(t1, t2);
 								return 0;
 							}
 						}
@@ -373,13 +414,11 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 							t1Item = t1.next();
 							t1.remove();
 						}
-						t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-						t2.setTransactionSupport(0);
+						doMerge(t1, t2);
 						return 0;
 					}
 				} else {
-					t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-					t2.setTransactionSupport(0);
+					doMerge(t1, t2);
 					return 0;
 				}
 			} else {
@@ -388,8 +427,7 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 					if (t1.hasNext()) {
 						t1Item = t1.next();
 					} else {
-						t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-						t2.setTransactionSupport(0);
+						doMerge(t1, t2);
 						return 0;
 					}
 				} else {
@@ -401,19 +439,45 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 							t1Item = t1.next();
 							t1.remove();
 						}
-						t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
-						t2.setTransactionSupport(0);
+						doMerge(t1, t2);
 						return 0;
 					}
 				}
 			}
 		}
 	}
-	
-	
-	
-	
-	
+
+	private final void doMerge(IndexedReusableIterator t1, IndexedReusableIterator t2) {
+		t1.setTransactionSupport(t1.getTransactionSupport() + t2.getTransactionSupport());
+		t2.setTransactionSupport(0);
+		if (this.multipleTransactionIds == null) {
+			this.multipleTransactionIds = new TIntObjectHashMap<TIntArrayList>();
+		}
+		TIntArrayList l = multipleTransactionIds.get(t1.transNum);
+		if (l == null) {
+			l = new TIntArrayList();
+			originalTransactionIds[t1.transNum] = -1;
+			multipleTransactionIds.put(t1.transNum, l);
+		}
+		TIntArrayList otherL = multipleTransactionIds.remove(t2.transNum);
+		if (otherL == null) {
+			l.add(originalTransactionIds[t2.transNum]);
+		} else {
+			l.addAll(otherL);
+		}
+	}
+
+	private final void trimAllOriginalTransIdsLists() {
+		if (this.multipleTransactionIds != null) {
+			this.multipleTransactionIds.forEachValue(new TObjectProcedure<TIntArrayList>() {
+				@Override
+				public boolean execute(TIntArrayList l) {
+					l.trimToSize();
+					return true;
+				}
+			});
+		}
+	}
 
 	abstract class IndexedReusableIterator implements TransactionIterator {
 		private int transNum;
@@ -440,10 +504,20 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		}
 
 		@Override
+		public TIntArrayList getTransactionOriginalId() {
+			return getOriginalId(this.transNum);
+		}
+
+		@Override
+		public TIntArrayList getTransactionOriginalId(IntHolder h) {
+			return getOriginalId(this.transNum, h);
+		}
+
+		@Override
 		public final void setTransactionSupport(int s) {
 			setTransSupport(this.transNum, s);
 		}
-		
+
 		private void findNext() {
 			while (true) {
 				this.nextPos++;
@@ -484,8 +558,6 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 			this.removePosVal();
 		}
 	}
-	
-	
 
 	@Override
 	public String toString() {
@@ -521,19 +593,19 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		IntIndexedTransactionsList tl = new IntIndexedTransactionsList(16, 3);
 		// TransactionsList tl = new ConcatenatedTransactionsList(16, 3);
 		tl.startWriting();
-		tl.beginTransaction(Short.MAX_VALUE + 3);
+		tl.beginTransaction(Short.MAX_VALUE + 3, 47);
 		tl.addItem(1);
 		tl.addItem(2);
 		tl.addItem(3);
 		tl.addItem(5);
 		tl.addItem(Short.MAX_VALUE * 2 - 2);
 		tl.addItem(Short.MAX_VALUE * 2);
-		tl.beginTransaction(1);
+		tl.beginTransaction(1, 28);
 		tl.addItem(1);
 		tl.addItem(2);
 		tl.addItem(5);
 		tl.addItem(Short.MAX_VALUE * 2 - 1);
-		tl.beginTransaction(3);
+		tl.beginTransaction(3, 8);
 		tl.addItem(1);
 		tl.addItem(2);
 		tl.addItem(3);

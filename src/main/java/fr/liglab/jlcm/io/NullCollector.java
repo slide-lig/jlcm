@@ -16,8 +16,7 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.io;
 
@@ -35,7 +34,7 @@ public final class NullCollector extends PatternsWriter {
 	protected AtomicLong collectedLength = new AtomicLong(0);
 
 	@Override
-	public void collect(int support, int[] pattern, int length) {
+	public void collect(int support, int[] pattern, int length, int[] originalTransIds) {
 		this.collectedCount.incrementAndGet();
 		this.collectedLength.addAndGet(length);
 	}

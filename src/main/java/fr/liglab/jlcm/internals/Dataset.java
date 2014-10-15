@@ -16,24 +16,26 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
-
+ */
 
 package fr.liglab.jlcm.internals;
 
 import java.util.Iterator;
 
+import org.omg.CORBA.IntHolder;
+
 import fr.liglab.jlcm.PLCM;
 import fr.liglab.jlcm.PLCM.PLCMCounters;
 import fr.liglab.jlcm.internals.tidlist.IntConsecutiveItemsConcatenatedTidList;
 import fr.liglab.jlcm.internals.tidlist.TidList;
-import fr.liglab.jlcm.internals.tidlist.UShortConsecutiveItemsConcatenatedTidList;
 import fr.liglab.jlcm.internals.tidlist.TidList.TIntIterable;
+import fr.liglab.jlcm.internals.tidlist.UShortConsecutiveItemsConcatenatedTidList;
 import fr.liglab.jlcm.internals.transactions.IntIndexedTransactionsList;
 import fr.liglab.jlcm.internals.transactions.TransactionIterator;
 import fr.liglab.jlcm.internals.transactions.TransactionsList;
 import fr.liglab.jlcm.internals.transactions.UShortIndexedTransactionsList;
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.list.array.TIntArrayList;
 
 /**
  * Stores transactions and does occurrence delivery
@@ -98,15 +100,22 @@ public class Dataset implements Cloneable {
 		}
 
 		this.transactions.startWriting();
+		IntHolder originalId = new IntHolder();
 		while (transactions.hasNext()) {
 			TransactionReader transaction = transactions.next();
 			if (transaction.getTransactionSupport() != 0 && transaction.hasNext()) {
-				final int transId = this.transactions.beginTransaction(transaction.getTransactionSupport());
+				final TIntArrayList originalIds = transaction.getTransactionOriginalId(originalId);
+				int transId;
+				if (originalIds == null) {
+					transId = this.transactions.beginTransaction(transaction.getTransactionSupport(), originalId.value);
+				} else {
+					transId = this.transactions.beginTransaction(transaction.getTransactionSupport(), originalIds);
+				}
 
 				while (transaction.hasNext()) {
 					final int item = transaction.next();
 					this.transactions.addItem(item);
-					
+
 					if (item < tidListBound) {
 						this.tidLists.addTransaction(item, transId);
 					}
