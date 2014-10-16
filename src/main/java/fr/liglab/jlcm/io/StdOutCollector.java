@@ -54,6 +54,9 @@ public class StdOutCollector extends PatternsWriter {
 		}
 		
 		System.out.println();
+		
+		this.collected++;
+		this.collectedLength += pattern.length;
 	}
 
 	public long close() {
