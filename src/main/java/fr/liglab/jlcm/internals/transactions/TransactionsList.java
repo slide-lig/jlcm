@@ -456,6 +456,7 @@ public abstract class TransactionsList implements Iterable<IterableTransaction>,
 		TIntArrayList l = multipleTransactionIds.get(t1.transNum);
 		if (l == null) {
 			l = new TIntArrayList();
+			l.add(originalTransactionIds[t1.transNum]);
 			originalTransactionIds[t1.transNum] = -1;
 			multipleTransactionIds.put(t1.transNum, l);
 		}
