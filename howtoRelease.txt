@@ -6,6 +6,8 @@ http://books.sonatype.com/nexus-book/reference/staging-sect-deployment.html#ex-s
 git tag jLCM-X.Y
 git push --tags
 
+--- remove -SNAPSHOT in pom's version
+
 mvn clean deploy -Dgpg.passphrase=****
 
 
