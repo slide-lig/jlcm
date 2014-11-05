@@ -96,7 +96,8 @@ public final class ExplorationStep implements Cloneable {
 	}
 	
 	/**
-	 * Start exploration on an abstract dataset
+	 * Start exploration on an abstract dataset, using an absolute frequency 
+	 * threshold
 	 */
 	public ExplorationStep(int minimumSupport, Iterable<TransactionReader> source) {
 		this.parent = null;
@@ -110,6 +111,22 @@ public final class ExplorationStep implements Cloneable {
 		this.failedFPTests = new TIntIntHashMap();
 	}
 
+	/**
+	 * Start exploration on an abstract dataset, using a relative frequency 
+	 * threshold
+	 */
+	public ExplorationStep(double minimumSupport, Iterable<TransactionReader> source) {
+		this.parent = null;
+		this.core_item = Integer.MAX_VALUE;
+		this.selectChain = null;
+		this.counters = new Counters(minimumSupport, source.iterator());
+		this.pattern = this.counters.closure;
+		TransactionsRenameAndSortDecorator filtered = new TransactionsRenameAndSortDecorator(source.iterator(), this.counters.renaming);
+		this.dataset = new Dataset(this.counters, filtered);
+		this.candidates = this.counters.getExtensionsIterator();
+		this.failedFPTests = new TIntIntHashMap();
+	}
+	
 	private ExplorationStep(ExplorationStep parent, int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
 			ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {
 		super();

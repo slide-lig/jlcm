@@ -216,43 +216,68 @@ public final class Counters implements Cloneable {
 	}
 
 	/**
-	 * Does item counting over an initial dataset : it will only ignore
-	 * infrequent items, and it doesn't know what's biggest item ID. IT ALSO
-	 * IGNORES TRANSACTIONS WEIGHTS ! (assuming it's 1 everywhere) /!\ It will
-	 * perform an absolute renaming : items are renamed (and, likely,
+	 * Does item counting over an initial dataset.
+	 * 
+	 * /!\
+	 * It will perform an absolute renaming : items are renamed (and, likely,
 	 * re-ordered) by decreasing support count. For instance 0 will be the most
 	 * frequent item.
 	 * 
 	 * Indexes in arrays will refer items' new names, except for closure.
 	 * 
-	 * @param minimumSupport
+	 * @param minimumSupport absolute minimum support
 	 * @param transactions
 	 */
-	Counters(int minimumSupport, Iterator<TransactionReader> transactions) {
-		this.minSupport = minimumSupport;
+	public Counters(int minimumSupport, Iterator<TransactionReader> transactions) {
+		this(new IntOrDouble(minimumSupport), transactions);
+	}
 
+	/**
+	 * @see Counters(int, Iterator<TransactionReader>)
+	 * @param minimumSupport relative minimum support
+	 * @param transactions
+	 */
+	public Counters(double minimumSupport, Iterator<TransactionReader> transactions) {
+		this(new IntOrDouble(minimumSupport), transactions);
+	}
+	
+	private Counters(IntOrDouble minimumSupport, Iterator<TransactionReader> transactions) {
 		TIntIntHashMap supportsMap = new TIntIntHashMap();
+		TIntIntHashMap distinctsTMap = new TIntIntHashMap();
 		int biggestItemID = 0;
 
 		// item support and transactions counting
 
 		int transactionsCounter = 0;
+		int weightsSum = 0;
 		while (transactions.hasNext()) {
 			TransactionReader transaction = transactions.next();
-			transactionsCounter++;
-
-			while (transaction.hasNext()) {
-				int item = transaction.next();
-				biggestItemID = Math.max(biggestItemID, item);
-				supportsMap.adjustOrPutValue(item, 1, 1);
+			int weight = transaction.getTransactionSupport();
+			
+			if (weight > 0) {
+				transactionsCounter++;
+				weightsSum += weight;
+				
+				while (transaction.hasNext()) {
+					int item = transaction.next();
+					biggestItemID = Math.max(biggestItemID, item);
+					supportsMap.adjustOrPutValue(item, weight, weight);
+					distinctsTMap.adjustOrPutValue(item, 1, 1);
+				}
 			}
 		}
 
-		this.transactionsCount = transactionsCounter;
+		this.transactionsCount = weightsSum;
 		this.distinctTransactionsCount = transactionsCounter;
 		this.renaming = new int[biggestItemID + 1];
 		Arrays.fill(this.renaming, -1);
-
+		
+		if (minimumSupport.isInt()) {
+			this.minSupport = minimumSupport.getInt();
+		} else {
+			this.minSupport = (int) (this.transactionsCount * minimumSupport.getDouble());
+		}
+		
 		// item filtering and final computations : some are infrequent, some
 		// belong to closure
 
@@ -268,7 +293,7 @@ public final class Counters implements Cloneable {
 
 			if (supportCount == this.transactionsCount) {
 				closureBuilder.add(item);
-			} else if (supportCount >= minimumSupport) {
+			} else if (supportCount >= this.minSupport) {
 				renamingHeap.add(new ItemAndSupport(item, supportCount));
 			} // otherwise item is infrequent : its renaming is already -1, ciao
 		}
@@ -294,7 +319,7 @@ public final class Counters implements Cloneable {
 			this.reverseRenaming[newItemID] = item;
 
 			this.supportCounts[newItemID] = support;
-			this.distinctTransactionsCounts[newItemID] = support;
+			this.distinctTransactionsCounts[newItemID] = distinctsTMap.get(item);
 
 			remainingSupportsSum += support;
 
@@ -446,9 +471,8 @@ public final class Counters implements Cloneable {
 				final int nextIndex = this.index.getAndIncrement();
 				if (nextIndex < this.max) {
 					return nextIndex;
-				} else {
-					return -1;
 				}
+				return -1;
 			} else {
 				while (true) {
 					final int nextIndex = this.index.getAndIncrement();
@@ -469,6 +493,37 @@ public final class Counters implements Cloneable {
 
 		public int last() {
 			return this.max;
+		}
+	}
+	
+	private static class IntOrDouble {
+		private final Integer i;
+		private final Double d;
+		
+		public IntOrDouble(double val) {
+			this.d = val;
+			this.i = null;
+		}
+		
+		public IntOrDouble(int val) {
+			this.i = val;
+			this.d = null;
+		}
+		
+		public boolean isInt() {
+			return this.i != null;
+		}
+		
+		public boolean isDouble() {
+			return this.d != null;
+		}
+		
+		public Double getDouble() {
+			return d;
+		}
+		
+		public Integer getInt() {
+			return i;
 		}
 	}
 }
