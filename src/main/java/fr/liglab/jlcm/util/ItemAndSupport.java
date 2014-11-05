@@ -22,7 +22,7 @@
 package fr.liglab.jlcm.util;
 
 /**
- * A < B <=> A.support > B.support
+ * A &lt; B &lt;=&gt; A.support &gt; B.support
  */
 public class ItemAndSupport implements Comparable<ItemAndSupport> {
 	

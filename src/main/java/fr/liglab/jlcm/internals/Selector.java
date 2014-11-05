@@ -116,10 +116,10 @@ public abstract class Selector {
 		public final int extension;
 
 		/**
-		 * @param extension
+		 * @param exploredExtension
 		 *            the tested extension
 		 * @param foundFirstParent
-		 *            a item found in closure > extension
+		 *            the item (greater than extension) found in closure
 		 */
 		public WrongFirstParentException(int exploredExtension, int foundFirstParent) {
 			this.firstParent = foundFirstParent;

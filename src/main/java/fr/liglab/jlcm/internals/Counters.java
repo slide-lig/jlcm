@@ -38,7 +38,7 @@ import gnu.trove.map.hash.TIntIntHashMap;
  * projections and filtering should be done, before instantiating the actual
  * projected dataset.
  * 
- * We're using arrays as Maps<Int,Int> , however they're not public as item
+ * We're using arrays as Maps&lt;Int,Int&gt; , however they're not public as item
  * identifiers may have been renamed by dataset representation. By the way this
  * class is able to generate renamings (and applies them to itself by the way)
  * if you need to rename items in a future representation. You *MUST* handle
@@ -130,7 +130,8 @@ public final class Counters implements Cloneable {
 	protected boolean compactedArrays = false;
 
 	/**
-	 * Exclusive index of the first item >= core_item in current base
+	 * Exclusive index of the first item greater or equal to core_item, in the 
+	 * current base
 	 */
 	protected int maxCandidate;
 
@@ -233,7 +234,7 @@ public final class Counters implements Cloneable {
 	}
 
 	/**
-	 * @see Counters(int, Iterator<TransactionReader>)
+	 * See the constructor with absolute threshold
 	 * @param minimumSupport relative minimum support
 	 * @param transactions
 	 */
