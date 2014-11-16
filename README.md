@@ -16,7 +16,7 @@ Please use [Maven](http://maven.apache.org/) to build the program.
 
 ## jLCM as a command-line utility
 
-Download [jLCM-cli's JAR](https://github.com/slide-lig/jlcm-cli/raw/binary/jLCM-cli-1.4-wdeps.jar) and invoke `java -jar jLCM-cli-1.4-wdeps.jar` to show the complete manual. Note that this program's `main` function lives in [a separated project](https://github.com/slide-lig/jlcm-cli/).
+Download [jLCM-cli's JAR](https://github.com/slide-lig/jlcm-cli/raw/binary/jLCM-cli-1.5-wdeps.jar) and invoke `java -jar jLCM-cli-1.5-wdeps.jar` to show the complete manual. Note that this program's `main` function lives in [a separated project](https://github.com/slide-lig/jlcm-cli/).
 
 This tool uses ASCII files as input: each line represents a transaction (using UNIX line terminators). You may find example input files in the [FIMI repository](http://fimi.ua.ac.be/data/), or start with a small one embedded in `src/test/resources` like [50retail.dat](https://github.com/slide-lig/jlcm/raw/master/src/test/resources/50retail.dat).
 
@@ -27,7 +27,7 @@ Add the following dependency to your `pom.xml`
     <dependency>
         <groupId>fr.liglab.jlcm</groupId>
         <artifactId>jLCM</artifactId>
-        <version>1.4</version>
+        <version>1.5</version>
     </dependency>
 
 To perform the mining you will have to instanciate an `ExplorationStep`, a `PatternsCollector` and the main class `PLCM`. Depending on how you want to do the I/O you may have to implement your own `Iterable<TransactionReader>` (for input) and/or `PatternsWriter` (for output).
