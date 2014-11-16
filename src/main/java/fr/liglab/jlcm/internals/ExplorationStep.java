@@ -42,6 +42,12 @@ public final class ExplorationStep implements Cloneable {
 	public final ExplorationStep parent;
 	
 	/**
+	 * Initialized with the given/parent's threshold
+	 * Set it to another value if you want to over/under-filter when calling next() 
+	 */
+	public int childrenThreshold;
+	
+	/**
 	 * closure of parent's pattern UNION extension
 	 */
 	public final int[] pattern;
@@ -81,6 +87,7 @@ public final class ExplorationStep implements Cloneable {
 		this.parent = null;
 		this.core_item = Integer.MAX_VALUE;
 		this.selectChain = null;
+		this.childrenThreshold = minimumSupport;
 
 		FileReader reader = new FileReader(path);
 		this.counters = new Counters(minimumSupport, reader);
@@ -103,6 +110,7 @@ public final class ExplorationStep implements Cloneable {
 		this.parent = null;
 		this.core_item = Integer.MAX_VALUE;
 		this.selectChain = null;
+		this.childrenThreshold = minimumSupport;
 		this.counters = new Counters(minimumSupport, source.iterator());
 		this.pattern = this.counters.closure;
 		TransactionsRenameAndSortDecorator filtered = new TransactionsRenameAndSortDecorator(source.iterator(), this.counters.renaming);
@@ -120,6 +128,7 @@ public final class ExplorationStep implements Cloneable {
 		this.core_item = Integer.MAX_VALUE;
 		this.selectChain = null;
 		this.counters = new Counters(minimumSupport, source.iterator());
+		this.childrenThreshold = this.counters.minSupport;
 		this.pattern = this.counters.closure;
 		TransactionsRenameAndSortDecorator filtered = new TransactionsRenameAndSortDecorator(source.iterator(), this.counters.renaming);
 		this.dataset = new Dataset(this.counters, filtered);
@@ -127,9 +136,10 @@ public final class ExplorationStep implements Cloneable {
 		this.failedFPTests = new TIntIntHashMap();
 	}
 	
-	private ExplorationStep(ExplorationStep parent, int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
+	private ExplorationStep(ExplorationStep parent, int childrenThreshold, int[] pattern, int core_item, Dataset dataset, Counters counters, Selector selectChain,
 			ExtensionsIterator candidates, TIntIntHashMap failedFPTests) {
 		super();
+		this.childrenThreshold = childrenThreshold;
 		this.parent = parent;
 		this.pattern = pattern;
 		this.core_item = core_item;
@@ -166,7 +176,7 @@ public final class ExplorationStep implements Cloneable {
 					// " with "+
 					// candidate+" ("+this.counters.getReverseRenaming()[candidate]+")");
 
-					Counters candidateCounts = new Counters(this.counters.minSupport, support.iterator(),
+					Counters candidateCounts = new Counters(this.childrenThreshold, support.iterator(),
 							candidate, this.counters.maxFrequent);
 
 					int greatest = Integer.MIN_VALUE;
@@ -205,7 +215,8 @@ public final class ExplorationStep implements Cloneable {
 	 */
 	protected ExplorationStep(ExplorationStep parent, int extension, Counters candidateCounts,
 			TransactionsIterable support) {
-
+		
+		this.childrenThreshold = candidateCounts.minSupport;
 		this.parent = parent;
 		this.core_item = extension;
 		this.counters = candidateCounts;
@@ -290,7 +301,7 @@ public final class ExplorationStep implements Cloneable {
 	}
 
 	public ExplorationStep copy() {
-		return new ExplorationStep(parent, pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates, failedFPTests);
+		return new ExplorationStep(parent, childrenThreshold, pattern, core_item, dataset.clone(), counters.clone(), selectChain, candidates, failedFPTests);
 	}
 
 	public Progress getProgression() {
