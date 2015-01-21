@@ -73,12 +73,16 @@ public class FileCollector extends PatternsWriter {
 				addSeparator = true;
 			}
 			
-			putInt(pattern[i]);
+			putItem(pattern[i]);
 		}
 		
 		safePut((byte) '\n');
 		this.collected++;
 		this.collectedLength += pattern.length;
+	}
+	
+	protected void putItem(final int i) {
+		this.putInt(i);
 	}
 	
 	protected void putInt(final int i) {

@@ -22,6 +22,7 @@
 package fr.liglab.jlcm.io;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * A thread safe PatternsCollector that will write to multiple files, one per mining thread.
@@ -43,6 +44,23 @@ public class MultiThreadedFileCollector extends PatternsWriter {
 			this.collectors[i] = new FileCollector(prefix + i + ".dat");
 		}
 	}
+	
+	/**
+	 * @param prefix
+	 * 			filename prefix for pattern files, each thread will append [ThreadID].dat
+	 * @param maxId
+	 * 			higer bound on thread's getId()
+	 * @param itemIDmap
+	 * 			if you're not using integers as item IDs
+	 * @throws IOException
+	 */
+	public MultiThreadedFileCollector(final String prefix, final int maxId, Map<Integer, String> itemIDmap) throws IOException {
+		this.collectors = new FileCollector[maxId];
+		for (int i = 0; i < maxId; i++) {
+			this.collectors[i] = new FileCollectorWithIDMapper(prefix + i + ".dat", itemIDmap);
+		}
+	}
+	
 	
 	@Override
 	public final void collect(int support, int[] pattern, int length) {
