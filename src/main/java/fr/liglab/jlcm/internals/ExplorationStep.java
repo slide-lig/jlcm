@@ -27,6 +27,7 @@ import fr.liglab.jlcm.internals.Counters.ExtensionsIterator;
 import fr.liglab.jlcm.internals.Dataset.TransactionsIterable;
 import fr.liglab.jlcm.internals.Selector.WrongFirstParentException;
 import fr.liglab.jlcm.io.FileReader;
+import fr.liglab.jlcm.io.FileReaderWithTransId;
 import fr.liglab.jlcm.util.ItemsetsFactory;
 import gnu.trove.map.hash.TIntIntHashMap;
 
@@ -82,6 +83,24 @@ public final class ExplorationStep implements Cloneable {
 		this.selectChain = null;
 
 		FileReader reader = new FileReader(path);
+		this.counters = new Counters(minimumSupport, reader);
+		reader.close(this.counters.renaming);
+
+		this.pattern = this.counters.closure;
+
+		this.dataset = new Dataset(this.counters, reader);
+
+		this.candidates = this.counters.getExtensionsIterator();
+
+		this.failedFPTests = new TIntIntHashMap();
+	}
+
+	public ExplorationStep(int minimumSupport, String transactionsFile, int[] ids) {
+		this.parent = null;
+		this.core_item = Integer.MAX_VALUE;
+		this.selectChain = null;
+
+		FileReaderWithTransId reader = new FileReaderWithTransId(transactionsFile, ids);
 		this.counters = new Counters(minimumSupport, reader);
 		reader.close(this.counters.renaming);
 
