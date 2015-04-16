@@ -35,7 +35,8 @@ public class ItemsetsFactory {
 	protected int capacity = 50;
 	
 	/**
-	 * If you're going big and have an estimation of future array's size...
+	 * If you're going big
+	 * @param c an estimation of future array's size
 	 */
 	public void ensureCapacity(final int c) {
 		buffer.ensureCapacity(c);

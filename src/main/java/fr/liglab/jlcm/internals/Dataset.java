@@ -45,7 +45,8 @@ public class Dataset implements Cloneable {
 	protected final TransactionsList transactions;
 
 	/**
-	 * frequent item => array of occurrences indexes in "concatenated"
+	 * Associates to a (frequent) item its array of occurrences indexes in
+	 * "concatenated"
 	 * Transactions are added in the same order in all occurrences-arrays.
 	 */
 	protected final TidList tidLists;

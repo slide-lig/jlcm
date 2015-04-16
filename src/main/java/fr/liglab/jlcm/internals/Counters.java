@@ -20,18 +20,18 @@
 
 package fr.liglab.jlcm.internals;
 
+import fr.liglab.jlcm.util.ItemAndSupport;
+import fr.liglab.jlcm.util.ItemsetsFactory;
+import gnu.trove.iterator.TIntIntIterator;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntIntHashMap;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.omg.CORBA.IntHolder;
-
-import fr.liglab.jlcm.util.ItemAndSupport;
-import fr.liglab.jlcm.util.ItemsetsFactory;
-import gnu.trove.iterator.TIntIntIterator;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntIntHashMap;
 
 /**
  * This class' constructor performs item counting over a transactions database,
@@ -40,7 +40,7 @@ import gnu.trove.map.hash.TIntIntHashMap;
  * projections and filtering should be done, before instantiating the actual
  * projected dataset.
  * 
- * We're using arrays as Maps<Int,Int> , however they're not public as item
+ * We're using arrays as Maps&lt;Int,Int&gt; , however they're not public as item
  * identifiers may have been renamed by dataset representation. By the way this
  * class is able to generate renamings (and applies them to itself by the way)
  * if you need to rename items in a future representation. You *MUST* handle
@@ -135,7 +135,8 @@ public final class Counters implements Cloneable {
 	protected boolean compactedArrays = false;
 
 	/**
-	 * Exclusive index of the first item >= core_item in current base
+	 * Exclusive index of the first item greater or equal to core_item, in the 
+	 * current base
 	 */
 	protected int maxCandidate;
 
@@ -235,35 +236,52 @@ public final class Counters implements Cloneable {
 	}
 
 	/**
-	 * Does item counting over an initial dataset : it will only ignore
-	 * infrequent items, and it doesn't know what's biggest item ID. IT ALSO
-	 * IGNORES TRANSACTIONS WEIGHTS ! (assuming it's 1 everywhere) /!\ It will
-	 * perform an absolute renaming : items are renamed (and, likely,
+	 * Does item counting over an initial dataset.
+	 * 
+	 * /!\
+	 * It will perform an absolute renaming : items are renamed (and, likely,
 	 * re-ordered) by decreasing support count. For instance 0 will be the most
 	 * frequent item.
 	 * 
 	 * Indexes in arrays will refer items' new names, except for closure.
 	 * 
-	 * @param minimumSupport
+	 * @param minimumSupport absolute minimum support
 	 * @param transactions
 	 */
-	Counters(int minimumSupport, Iterator<TransactionReader> transactions) {
-		this.minSupport = minimumSupport;
+	public Counters(int minimumSupport, Iterator<TransactionReader> transactions) {
+		this(new IntOrDouble(minimumSupport), transactions);
+	}
 
+	/**
+	 * See the constructor with absolute threshold
+	 * @param minimumSupport relative minimum support
+	 * @param transactions
+	 */
+	public Counters(double minimumSupport, Iterator<TransactionReader> transactions) {
+		this(new IntOrDouble(minimumSupport), transactions);
+	}
+	
+	private Counters(IntOrDouble minimumSupport, Iterator<TransactionReader> transactions) {
 		TIntIntHashMap supportsMap = new TIntIntHashMap();
+		TIntIntHashMap distinctsTMap = new TIntIntHashMap();
 		int biggestItemID = 0;
 
 		// item support and transactions counting
 
 		int transactionsCounter = 0;
-
+		int weightsSum = 0;
 		TIntArrayList originalTransIds = new TIntArrayList();
 		IntHolder originalId = new IntHolder();
 
 		while (transactions.hasNext()) {
 			TransactionReader transaction = transactions.next();
-			transactionsCounter++;
-
+			
+			int weight = transaction.getTransactionSupport();
+			if (weight > 0) {
+				transactionsCounter++;
+				weightsSum += weight;
+			}
+			
 			final TIntArrayList originalIds = transaction.getTransactionOriginalId(originalId);
 			if (originalIds == null) {
 				originalTransIds.add(originalId.value);
@@ -274,17 +292,23 @@ public final class Counters implements Cloneable {
 			while (transaction.hasNext()) {
 				int item = transaction.next();
 				biggestItemID = Math.max(biggestItemID, item);
-				supportsMap.adjustOrPutValue(item, 1, 1);
+				supportsMap.adjustOrPutValue(item, weight, weight);
+				distinctsTMap.adjustOrPutValue(item, 1, 1);
 			}
 		}
-
+		
+		this.transactionsCount = weightsSum;
 		this.originalTidList = originalTransIds.toArray();
-
-		this.transactionsCount = transactionsCounter;
 		this.distinctTransactionsCount = transactionsCounter;
 		this.renaming = new int[biggestItemID + 1];
 		Arrays.fill(this.renaming, -1);
-
+		
+		if (minimumSupport.isInt()) {
+			this.minSupport = minimumSupport.getInt();
+		} else {
+			this.minSupport = (int) (this.transactionsCount * minimumSupport.getDouble());
+		}
+		
 		// item filtering and final computations : some are infrequent, some
 		// belong to closure
 
@@ -300,7 +324,7 @@ public final class Counters implements Cloneable {
 
 			if (supportCount == this.transactionsCount) {
 				closureBuilder.add(item);
-			} else if (supportCount >= minimumSupport) {
+			} else if (supportCount >= this.minSupport) {
 				renamingHeap.add(new ItemAndSupport(item, supportCount));
 			} // otherwise item is infrequent : its renaming is already -1, ciao
 		}
@@ -326,7 +350,7 @@ public final class Counters implements Cloneable {
 			this.reverseRenaming[newItemID] = item;
 
 			this.supportCounts[newItemID] = support;
-			this.distinctTransactionsCounts[newItemID] = support;
+			this.distinctTransactionsCounts[newItemID] = distinctsTMap.get(item);
 
 			remainingSupportsSum += support;
 
@@ -480,9 +504,8 @@ public final class Counters implements Cloneable {
 				final int nextIndex = this.index.getAndIncrement();
 				if (nextIndex < this.max) {
 					return nextIndex;
-				} else {
-					return -1;
 				}
+				return -1;
 			} else {
 				while (true) {
 					final int nextIndex = this.index.getAndIncrement();
@@ -503,6 +526,37 @@ public final class Counters implements Cloneable {
 
 		public int last() {
 			return this.max;
+		}
+	}
+	
+	private static class IntOrDouble {
+		private final Integer i;
+		private final Double d;
+		
+		public IntOrDouble(double val) {
+			this.d = val;
+			this.i = null;
+		}
+		
+		public IntOrDouble(int val) {
+			this.i = val;
+			this.d = null;
+		}
+		
+		public boolean isInt() {
+			return this.i != null;
+		}
+		
+		public boolean isDouble() {
+			return this.d != null;
+		}
+		
+		public Double getDouble() {
+			return d;
+		}
+		
+		public Integer getInt() {
+			return i;
 		}
 	}
 }

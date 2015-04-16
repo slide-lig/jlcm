@@ -73,8 +73,8 @@ public class FileCollector extends PatternsWriter {
 			} else {
 				addSeparator = true;
 			}
-
-			putInt(pattern[i]);
+			
+			putItem(pattern[i]);
 		}
 
 		safePut((byte) '\t');
@@ -94,7 +94,11 @@ public class FileCollector extends PatternsWriter {
 		this.collected++;
 		this.collectedLength += pattern.length;
 	}
-
+	
+	protected void putItem(final int i) {
+		this.putInt(i);
+	}
+	
 	protected void putInt(final int i) {
 		try {
 			byte[] asBytes = Integer.toString(i).getBytes(charset);
