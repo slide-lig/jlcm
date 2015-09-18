@@ -75,6 +75,7 @@ final class TransactionsRenameAndSortDecorator implements Iterator<TransactionRe
 	
 	private static class CopyReader implements TransactionReader {
 		private int i;
+		private int transactionSupport;
 		private int length;
 		protected int[] buffer = new int[1024];
 		
@@ -97,6 +98,7 @@ final class TransactionsRenameAndSortDecorator implements Iterator<TransactionRe
 				if (j>0) {
 					this.length = j;
 					Arrays.sort(this.buffer, 0, this.length);
+					this.transactionSupport = transaction.getTransactionSupport();
 					return;
 				}
 			}
@@ -104,7 +106,7 @@ final class TransactionsRenameAndSortDecorator implements Iterator<TransactionRe
 		}
 
 		public int getTransactionSupport() {
-			return 1;
+			return this.transactionSupport;
 		}
 		public int next() {
 			return this.buffer[this.i++];
