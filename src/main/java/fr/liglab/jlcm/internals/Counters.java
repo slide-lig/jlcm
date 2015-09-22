@@ -320,9 +320,10 @@ public final class Counters implements Cloneable {
 			this.reverseRenaming[newItemID] = item;
 
 			this.supportCounts[newItemID] = support;
-			this.distinctTransactionsCounts[newItemID] = distinctsTMap.get(item);
-
-			remainingSupportsSum += support;
+			
+			int distinctSupport = distinctsTMap.get(item);
+			this.distinctTransactionsCounts[newItemID] = distinctSupport;
+			remainingSupportsSum += distinctSupport;
 
 			entry = renamingHeap.poll();
 			newItemID++;
