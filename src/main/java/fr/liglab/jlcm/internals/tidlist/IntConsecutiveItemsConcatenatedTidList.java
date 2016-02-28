@@ -25,10 +25,11 @@ import java.util.Arrays;
 
 import fr.liglab.jlcm.internals.Counters;
 
-public class IntConsecutiveItemsConcatenatedTidList extends TidList {
+public class IntConsecutiveItemsConcatenatedTidList extends ConsecutiveItemConcatenatedTidList {
 
-	public static boolean compatible(int maxTid) {
-		return true;
+	public static boolean compatible(int maxTid, Counters c) {
+		return maxTid < (Integer.MAX_VALUE/2) && 
+				c.distinctTransactionLengthSum < Integer.MAX_VALUE;
 	}
 
 	private int[] array;

@@ -25,10 +25,11 @@ import java.util.Arrays;
 
 import fr.liglab.jlcm.internals.Counters;
 
-public final class IntIndexedTransactionsList extends TransactionsList {
+public final class IntIndexedTransactionsList extends IndexedTransactionsList {
 
 	public static boolean compatible(Counters c) {
-		return true;
+		return c.distinctTransactionLengthSum < Integer.MAX_VALUE && 
+				c.distinctTransactionsCount < (Integer.MAX_VALUE/2);
 	}
 
 	public static int getMaxTransId(Counters c) {
@@ -38,7 +39,7 @@ public final class IntIndexedTransactionsList extends TransactionsList {
 	int[] concatenated;
 
 	public IntIndexedTransactionsList(Counters c) {
-		this(c.distinctTransactionLengthSum, c.distinctTransactionsCount);
+		this((int) c.distinctTransactionLengthSum, c.distinctTransactionsCount);
 	}
 
 	public IntIndexedTransactionsList(int transactionsLength, int nbTransactions) {

@@ -25,11 +25,13 @@ import java.util.Arrays;
 
 import fr.liglab.jlcm.internals.Counters;
 
-public final class UShortIndexedTransactionsList extends TransactionsList {
+public final class UShortIndexedTransactionsList extends IndexedTransactionsList {
 	char[] concatenated;
 
 	public static boolean compatible(Counters c) {
-		return c.getMaxFrequent() < Character.MAX_VALUE;
+		return c.distinctTransactionLengthSum < Integer.MAX_VALUE && 
+				c.distinctTransactionsCount < (Integer.MAX_VALUE/2) && 
+				c.getMaxFrequent() < Character.MAX_VALUE;
 	}
 
 	public static int getMaxTransId(Counters c) {
@@ -37,7 +39,7 @@ public final class UShortIndexedTransactionsList extends TransactionsList {
 	}
 
 	public UShortIndexedTransactionsList(Counters c) {
-		this(c.distinctTransactionLengthSum, c.distinctTransactionsCount);
+		this((int) c.distinctTransactionLengthSum, c.distinctTransactionsCount);
 	}
 
 	public UShortIndexedTransactionsList(int transactionsLength, int nbTransactions) {

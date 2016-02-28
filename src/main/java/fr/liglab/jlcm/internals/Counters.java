@@ -65,7 +65,7 @@ public final class Counters implements Cloneable {
 	/**
 	 * Sum of given *filtered* transactions' lengths, ignoring their weight
 	 */
-	public final int distinctTransactionLengthSum;
+	public final long distinctTransactionLengthSum;
 
 	/**
 	 * Support count, per item having a support count in [minSupport; 100% [
@@ -334,7 +334,7 @@ public final class Counters implements Cloneable {
 	}
 
 	private Counters(int minSupport, int transactionsCount, int distinctTransactionsCount,
-			int distinctTransactionLengthSum, int[] supportCounts,
+			long distinctTransactionLengthSum, int[] supportCounts,
 			int[] distinctTransactionsCounts, int[] closure, int nbFrequents, int maxFrequent, int[] reverseRenaming,
 			int[] renaming, boolean compactedArrays, int maxCandidate) {
 		super();
