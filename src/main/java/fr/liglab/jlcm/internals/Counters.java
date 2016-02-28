@@ -191,7 +191,7 @@ public final class Counters implements Cloneable {
 		// belong to closure
 
 		ItemsetsFactory closureBuilder = new ItemsetsFactory();
-		int remainingDistinctTransLengths = 0;
+		long remainingDistinctTransLengths = 0;
 		int remainingFrequents = 0;
 		int biggestItemID = 0;
 
@@ -307,7 +307,7 @@ public final class Counters implements Cloneable {
 		this.supportCounts = new int[this.nbFrequents];
 		this.distinctTransactionsCounts = new int[this.nbFrequents];
 		this.reverseRenaming = new int[this.nbFrequents];
-		int remainingSupportsSum = 0;
+		long remainingSupportsSum = 0;
 
 		ItemAndSupport entry = renamingHeap.poll();
 		int newItemID = 0;
