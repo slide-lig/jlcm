@@ -32,7 +32,7 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h1>
-<a id="jlcm" class="anchor" href="#jlcm" aria-hidden="true"><span class="octicon octicon-link"></span></a>jLCM</h1>
+<a id="jlcm" class="anchor" href="#jlcm" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>jLCM</h1>
 
 <p>A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno &amp; H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class: PLCM.</p>
 
@@ -51,21 +51,21 @@ Simulation, 2010</li>
 <p>Please use <a href="http://maven.apache.org/">Maven</a> to build the program. </p>
 
 <h2>
-<a id="jlcm-as-a-command-line-utility" class="anchor" href="#jlcm-as-a-command-line-utility" aria-hidden="true"><span class="octicon octicon-link"></span></a>jLCM as a command-line utility</h2>
+<a id="jlcm-as-a-command-line-utility" class="anchor" href="#jlcm-as-a-command-line-utility" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>jLCM as a command-line utility</h2>
 
-<p>Download <a href="https://github.com/slide-lig/jlcm-cli/raw/binary/jLCM-cli-1.6.2-wdeps.jar">jLCM-cli's JAR</a> and invoke <code>java -jar jLCM-cli-1.6.2-wdeps.jar</code> to show the complete manual. Note that this program's <code>main</code> function lives in <a href="https://github.com/slide-lig/jlcm-cli/">a separated project</a>.</p>
+<p>Download <a href="https://github.com/slide-lig/jlcm-cli/raw/binary/jLCM-cli-1.7.0-wdeps.jar">jLCM-cli's JAR</a> and invoke <code>java -jar jLCM-cli-1.7.0-wdeps.jar</code> to show the complete manual. Note that this program's <code>main</code> function lives in <a href="https://github.com/slide-lig/jlcm-cli/">a separated project</a>.</p>
 
 <p>This tool uses ASCII files as input: each line represents a transaction (using UNIX line terminators). You may find example input files in the <a href="http://fimi.ua.ac.be/data/">FIMI repository</a>, or start with a small one embedded in <code>src/test/resources</code> like <a href="https://github.com/slide-lig/jlcm/raw/master/src/test/resources/50retail.dat">50retail.dat</a>.</p>
 
 <h2>
-<a id="jlcm-as-a-librarymaven-dependency" class="anchor" href="#jlcm-as-a-librarymaven-dependency" aria-hidden="true"><span class="octicon octicon-link"></span></a>jLCM as a library/Maven dependency</h2>
+<a id="jlcm-as-a-librarymaven-dependency" class="anchor" href="#jlcm-as-a-librarymaven-dependency" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>jLCM as a library/Maven dependency</h2>
 
 <p>Add the following dependency to your <code>pom.xml</code></p>
 
 <pre><code>&lt;dependency&gt;
     &lt;groupId&gt;fr.liglab.jlcm&lt;/groupId&gt;
     &lt;artifactId&gt;jLCM&lt;/artifactId&gt;
-    &lt;version&gt;1.6.2&lt;/version&gt;
+    &lt;version&gt;1.7.0&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
 
@@ -74,11 +74,11 @@ Simulation, 2010</li>
 <p>The <a href="https://github.com/slide-lig/jlcm-cli/blob/master/src/main/java/fr/liglab/jlcm/RunPLCM.java">main class of jLCM-cli</a> provides an example use of the library.</p>
 
 <h2>
-<a id="license-and-copyright-owners" class="anchor" href="#license-and-copyright-owners" aria-hidden="true"><span class="octicon octicon-link"></span></a>License and copyright owners</h2>
+<a id="license-and-copyright-owners" class="anchor" href="#license-and-copyright-owners" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License and copyright owners</h2>
 
 <p>This work is released under the Apache License 2.0 (see LICENSE).</p>
 
-<p>Copyright 2013,2014,2015 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, 
+<p>Copyright 2013,2014,2015,2016 Martin Kirchgessner, Vincent Leroy, Alexandre Termier, 
 Sihem Amer-Yahia, Marie-Christine Rousset, Université Joseph Fourier and CNRS.</p>
       </section>
     </div>
