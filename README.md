@@ -2,6 +2,13 @@
 
 A Java implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno & H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class: PLCM.
 
+Key features:
+
+* Mines closed frequent itemsets 
+* Excellent speed-up on multi-core machines
+* Provides iterator interfaces to adapt your own items/transactions/itemset collections
+* Able to load datasets greater than 4GB (since v1.7)
+
 Reference papers:
 
 * "An efficient algorithm for enumerating closed patterns in transaction 
